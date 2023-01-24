@@ -1,0 +1,20 @@
+# Ignore Mac system files
+.DS_Store
+
+# Ignore all text files
+*.txt
+
+# Ignore all fig files
+*.fig
+
+# Ignore all csv files
+*.csv
+
+# Ignore all asv files
+*.asv
+
+# Ignore all tif files
+*.tif
+
+# Ignore jupyter checkpoint folder
+**/.ipynb_checkpoints/
