@@ -88,7 +88,7 @@ elevations(elevations > 10000) = nan; % more trash takeout
 
 %load the ICESat-2 data
 T = table; %create a table
-icesat2 = [csv_path abbrev '-ICESat2-ATL08-params']; %compile the file name
+icesat2 = [csv_path abbrev '-ICESat2-ATL08']; %compile the file name
 file = readtable(icesat2); %read in files
 T = [T; file];
 %T = T(1:5,:); % ONLY FOR TESTING!!!!!!!!!!

@@ -80,7 +80,6 @@ aspect = readgeoraster(DTM_aspect);
 
 %identify the ICESat-2 data csv files
 cd_to_csv = ['cd ',csv_path]; eval(cd_to_csv);
-csvs = dir([acronym,'*.csv']); %if running more than once, rename original csvs to '*raw.csv' and change the search here to find files with that ending
 
 %filter R2erence DTM elevations
 % elevations(elevations < -10) = nan;
@@ -90,11 +89,6 @@ elevations(elevations > 10000) = nan; % more trash takeout
 
 %load the ICESat-2 data
 T = table; %create a table
-% for i = 1:length(csvs)
-%     icesat2 = [csv_path,'RCEW-ICESat2-ATL08-params']; %compile the file name
-%     file = readtable(icesat2); %read in files
-%     T = [T; file]; %combine tables
-% end
 icesat2 = [csv_path,csv_name]; %compile the file name
 file = readtable(icesat2); %read in files
 T = [T; file];
