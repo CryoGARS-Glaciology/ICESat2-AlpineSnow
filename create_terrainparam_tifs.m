@@ -11,15 +11,17 @@
 %1) utm2ll to transform UTM coordinates to latitude and longitude in order
 %to use Matlab's built-in gradientm function. Path specified in code.
 %%%
-%% Initialize
+%% Inputs
 clear all; close all;
-addpath('/Users/ellynenderlin/Research/miscellaneous/general-code/');
+addpath(['./functions']) 
+
+DEM_path = '/users/ellynenderlin/Research/NASA_CryoIdaho/glaciers/Wolverine/DEMs/';
 
 %specify the directory and UTM zone
-cd /users/ellynenderlin/Research/NASA_CryoIdaho/glaciers/Wolverine/DEMs/
 UTMzone = 6; EPSGcode = 32606;
 
 %% loop through the DEMs, calculating slope and aspect & resaving as geotiffs
+cd_to_DEM = ['cd ',DEM_path]; eval(cd_to_DEM);
 DEMs = dir('*.tif');
 for j = 1:length(DEMs)
     disp(DEMs(j).name);
