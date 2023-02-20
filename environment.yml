@@ -1,5 +1,5 @@
 # conda env create -f environment.yml
-name: IS2-alpinesnow
+name: IS2alpinesnow
 channels:
   - conda-forge
 dependencies:
@@ -26,6 +26,5 @@ dependencies:
   - tk
   - xyzservices
   - pyarrow
-  - rasterio
   - pip:
       - -e ./
