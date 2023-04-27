@@ -52,6 +52,8 @@ for filecounter = starter:length(h5files) % loop through icesat2 files
                 snow = h5read(h5test, ['/',beam,'/land_segments/segment_snowcover']); % read in if the surface is estimated as 0=water,1=land,2=snow,3=ice
                 std = h5read(h5test, ['/',beam,'/land_segments/terrain/h_te_std']); % standard deviation
                 can = h5read(h5test, ['/',beam,'/land_segments/canopy/h_canopy']); % canopy elevation
+                date = h5read(h5test, ['/ancillary_data/data_end_utc']); % read date
+                
                 if ~isempty(terrain)
                     disp('grabbed data');
                 end
@@ -99,6 +101,7 @@ for filecounter = starter:length(h5files) % loop through icesat2 files
                     std = std(Ifinal);
                     can = can(Ifinal);
                     can(can > 1000) = nan; % change canopy elevation no data value to nan
+                    date(1:length(can)) = datetime(strtok(date, 'T'));
                     
                     
                     % use wgs2utm script to write easting and northing values
@@ -116,6 +119,8 @@ for filecounter = starter:length(h5files) % loop through icesat2 files
                     s.Northing = norths;
                     s.Brightness_Flag = bright;
                     s.Snow_Flag = snow;
+                    s.date = date';
+                   
                     
                     %write the csv
                     table = struct2table(s); % convert to a table
