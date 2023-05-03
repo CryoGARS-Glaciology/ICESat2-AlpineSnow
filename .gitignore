@@ -16,6 +16,12 @@
 # Ignore all tif files
 *.tif
 
+# Ignore all png files
+*.png
+
+# Ignore all jpg files
+*.jpg
+
 # Ignore jupyter checkpoint folder
 **/.ipynb_checkpoints/
 
