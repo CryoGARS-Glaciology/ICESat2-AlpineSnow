@@ -18,17 +18,17 @@ addpath(['./functions'])
 addpath(['/Users/karinazikan/Documents/cmocean'])
 
 %Folder path 
-folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/DCEW/';
+folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/';
 %site abbreviation for file names
-abbrev = 'DCEW';
+abbrev = 'RCEW';
 %Set snowcover to 'snowonn' or 'snowoff'
 snowcover = 'snowoff';
 
 %%
 
 %File paths
-icesat2_atl08 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL08'];
-ref_elevations_atl08 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL08-params'];
+icesat2_atl08 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL08-params'];
+ref_elevations_atl08 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL08-ref-elevations'];
 
 icesat2_atl06 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr'];
 ref_elevations_atl06 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-params'];
@@ -141,13 +141,13 @@ for i = 1:N_Products
         acronym = 'ATL08';
 
         % ICESat-2 data
-%        zmod = T.Elevation_bestfit(:); % save the fitted 'model' elevations (icesat-2 elevations)
+        zmod = T.Elevation_bestfit(:); % save the fitted 'model' elevations (icesat-2 elevations)
         zmod = T.Elevation(:); % save the 'model' elevations (icesat-2 elevations)
-%        zstd = T.std; %save the standard deviation of the icesat-2 elevation estimates
+        zstd = T.std; %save the standard deviation of the icesat-2 elevation estimates
         easts = T.Easting(:); % pull out the easting values
         norths = T.Northing(:); % pull out the northings
-        slope = E.slope_mean(:);
-        aspect = E.aspect_mean(:);
+        slope = T.slope(:);
+        aspect = T.aspect(:);
         %canopy = T.Canopy(:);
     elseif i == 2
          T = I_06;
@@ -308,8 +308,8 @@ hold off
 ResidualsTable.residuals = [ResidualsAll{1}(:,3); ResidualsAll{2}(:,1); ResidualsAll{3}(:,1)];
 ResidualsTable.product = [ResidualsAll{1}(:,4); ResidualsAll{2}(:,4); ResidualsAll{3}(:,4)];
 ResidualsTable.elevations = [E_08.elevation_report_mean; E_06.elevation_report_mean; E_06_class.elevation_report_mean];
-ResidualsTable.aspect = [E_08.aspect_mean; E_06.aspect_mean; E_06_class.aspect_mean];
-ResidualsTable.slope = [E_08.slope_mean; E_06.slope_mean; E_06_class.slope_mean];
+ResidualsTable.aspect = [I_08.aspect; E_06.aspect_mean; E_06_class.aspect_mean];
+ResidualsTable.slope = [I_08.slope; E_06.slope_mean; E_06_class.slope_mean];
 
 % ResidualsTable.residuals = [ResidualsAll{2}(:,1); ResidualsAll{3}(:,1)];
 % ResidualsTable.product = [ResidualsAll{2}(:,4); ResidualsAll{3}(:,4)];
@@ -326,61 +326,61 @@ xlabel('Elevation (m a.s.l.)','fontsize',16); %ylabel('Elevation residuals (m)',
 %close(gcf);
 %SLOPE
 subplot(3,1,2);
-h = histogram(E_08.slope_mean(~isnan(ResidualsAll{1}(:,1))),5);
+h = histogram(I_08.slope(~isnan(ResidualsAll{1}(:,1))),5);
 slope_binwidth = h.BinWidth; slope_binedges = h.BinEdges;
 clear h;
 xlabel('Aspect (degrees)','fontsize',16); ylabel('Observations','fontsize',16);
-%close(gcf);
+% close(gcf);
 %ASPECT
 subplot(3,1,3);
-h = histogram(E_08.aspect_mean(~isnan(ResidualsAll{1}(:,1))),5);
+h = histogram(I_08.aspect(~isnan(ResidualsAll{1}(:,1))),5);
 aspect_binwidth = h.BinWidth; aspect_binedges = h.BinEdges;
 clear h;
 xlabel('Slope (degrees)','fontsize',16); 
-%close(gcf);
+% close(gcf);
 
 whiskerline = '-'; outliermarker = 'o';
 
-% % boxplot figure
-% fig9 = figure(9); clf
-% %ELEVATION
-% subplot(3,1,1);
-% hold on
-% bins = {num2str(elev_binedges(2)) num2str(elev_binedges(3)) num2str(elev_binedges(4)) num2str(elev_binedges(5)) num2str(elev_binedges(6))};
-% groupElev = discretize(ResidualsTable.elevations,elev_binedges,'categorical',bins);
-% %meanWeight = groupsummary(ResidualsTable.residuals,groupElev,'mean');
-% boxchart(groupElev,ResidualsTable.residuals,'GroupByColor',ResidualsTable.product,'MarkerStyle','none')
-% colororder([colors{1}(3,:); colors{2}(3,:); colors{3}(3,:)]); 
-% ylim([-5,3])
-% % plot(meanWeight,'-o','Color','k')
-% set(gca,'fontsize',16,'box','on'); drawnow;
-% legend('ATL08','ATL06sr','ATL06sr ATL08 clasifications','Location','northwest');
-% xlabel('Elevation (m a.s.l.)','fontsize',16); %ylabel('Elevation residuals (m)','fontsize',16);
-% %text(1,max(ylims)-0.05*range(ylims),'a)','fontsize',16);
-% %ASPECT
-% subplot(3,1,2);
-% hold on
-% bins = {num2str(aspect_binedges(2)) num2str(aspect_binedges(3)) num2str(aspect_binedges(4)) num2str(aspect_binedges(5)) num2str(aspect_binedges(6))};
-% groupAspect = discretize(ResidualsTable.aspect,aspect_binedges,'categorical',bins);
-% %meanWeight = groupsummary(ResidualsTable.residuals,groupAspect,'mean');
-% boxchart(groupAspect,ResidualsTable.residuals,'GroupByColor',ResidualsTable.product,'MarkerStyle','none')
-% ylim([-5,3])
-% % plot(meanWeight,'-o','Color','k')
-% set(gca,'fontsize',16,'box','on'); drawnow;
-% xlabel('Aspect (degrees)','fontsize',16); ylabel('Elevation residuals (m)','fontsize',16);
-% %text(1,max(ylims)-0.05*range(ylims),'a)','fontsize',16);
-% %SLOPE
-% subplot(3,1,3);
-% hold on
-% bins = {num2str(slope_binedges(2)) num2str(slope_binedges(3)) num2str(slope_binedges(4)) num2str(slope_binedges(5)) num2str(slope_binedges(6))};
-% groupSlope = discretize(ResidualsTable.aspect,slope_binedges,'categorical',bins);
-% %meanWeight = groupsummary(ResidualsTable.residuals,groupAspect,'mean');
-% boxchart(groupSlope,ResidualsTable.residuals,'GroupByColor',ResidualsTable.product,'MarkerStyle','none')
-% ylim([-5,3])
-% % plot(meanWeight,'-o','Color','k')
-% set(gca,'fontsize',16,'box','on'); drawnow;
-% xlabel('Slope (degrees)','fontsize',16); %ylabel('Elevation residuals (m)','fontsize',16);
-% %text(1,max(ylims)-0.05*range(ylims),'a)','fontsize',16);
+% boxplot figure
+fig9 = figure(9); clf
+%ELEVATION
+subplot(3,1,1);
+hold on
+bins = {num2str(elev_binedges(2)) num2str(elev_binedges(3)) num2str(elev_binedges(4)) num2str(elev_binedges(5)) num2str(elev_binedges(6))};
+groupElev = discretize(ResidualsTable.elevations,elev_binedges,'categorical',bins);
+%meanWeight = groupsummary(ResidualsTable.residuals,groupElev,'mean');
+boxchart(groupElev,ResidualsTable.residuals,'GroupByColor',ResidualsTable.product,'MarkerStyle','none')
+colororder([colors{1}(3,:); colors{2}(3,:); colors{3}(3,:)]); 
+ylim([-5,3])
+% plot(meanWeight,'-o','Color','k')
+set(gca,'fontsize',16,'box','on'); drawnow;
+legend('ATL08','ATL06sr','ATL06sr ATL08 clasifications','Location','northwest');
+xlabel('Elevation (m a.s.l.)','fontsize',16); %ylabel('Elevation residuals (m)','fontsize',16);
+%text(1,max(ylims)-0.05*range(ylims),'a)','fontsize',16);
+%ASPECT
+subplot(3,1,2);
+hold on
+bins = {num2str(aspect_binedges(2)) num2str(aspect_binedges(3)) num2str(aspect_binedges(4)) num2str(aspect_binedges(5)) num2str(aspect_binedges(6))};
+groupAspect = discretize(ResidualsTable.aspect,aspect_binedges,'categorical',bins);
+%meanWeight = groupsummary(ResidualsTable.residuals,groupAspect,'mean');
+boxchart(groupAspect,ResidualsTable.residuals,'GroupByColor',ResidualsTable.product,'MarkerStyle','none')
+ylim([-5,3])
+% plot(meanWeight,'-o','Color','k')
+set(gca,'fontsize',16,'box','on'); drawnow;
+xlabel('Aspect (degrees)','fontsize',16); ylabel('Elevation residuals (m)','fontsize',16);
+%text(1,max(ylims)-0.05*range(ylims),'a)','fontsize',16);
+%SLOPE
+subplot(3,1,3);
+hold on
+bins = {num2str(slope_binedges(2)) num2str(slope_binedges(3)) num2str(slope_binedges(4)) num2str(slope_binedges(5)) num2str(slope_binedges(6))};
+groupSlope = discretize(ResidualsTable.aspect,slope_binedges,'categorical',bins);
+%meanWeight = groupsummary(ResidualsTable.residuals,groupAspect,'mean');
+boxchart(groupSlope,ResidualsTable.residuals,'GroupByColor',ResidualsTable.product,'MarkerStyle','none')
+ylim([-5,3])
+% plot(meanWeight,'-o','Color','k')
+set(gca,'fontsize',16,'box','on'); drawnow;
+xlabel('Slope (degrees)','fontsize',16); %ylabel('Elevation residuals (m)','fontsize',16);
+%text(1,max(ylims)-0.05*range(ylims),'a)','fontsize',16);
 
 % boxplot figure seperate products
 fig10 = figure(10); clf
@@ -391,7 +391,7 @@ subplot(3,3,1);
 hold on
 groupElev = discretize(E_08.elevation_report_mean,elev_binedges,'categorical',bins);
 boxchart(groupElev,ResidualsAll{1}(:,3),'BoxFaceColor',colors{1}(3,:),'MarkerStyle','none')
-ylim([-6,4])
+ylim([-3,1])
 set(gca,'fontsize',16,'box','on'); drawnow;
 title('ATL08');
 xlabel('Elevation (m a.s.l.)','fontsize',16); ylabel('Elevation residuals (m)','fontsize',16);
@@ -400,7 +400,7 @@ subplot(3,3,2);
 hold on
 groupElev = discretize(E_06.elevation_report_mean,elev_binedges,'categorical',bins);
 boxchart(groupElev,ResidualsAll{2}(:,1),'BoxFaceColor',colors{2}(3,:),'MarkerStyle','none')
-ylim([-6,4])
+ylim([-3,1])
 set(gca,'fontsize',16,'box','on'); drawnow;
 title('ATL06');
 xlabel('Elevation (m a.s.l.)','fontsize',16); 
@@ -409,7 +409,7 @@ subplot(3,3,3);
 hold on
 groupElev = discretize(E_06_class.elevation_report_mean,elev_binedges,'categorical',bins);
 boxchart(groupElev,ResidualsAll{3}(:,1),'BoxFaceColor',colors{3}(3,:),'MarkerStyle','none')
-ylim([-6,4])
+ylim([-3,1])
 set(gca,'fontsize',16,'box','on'); drawnow;
 title('ATL06 classified');
 xlabel('Elevation (m a.s.l.)','fontsize',16); 
@@ -418,9 +418,9 @@ bins = {num2str(aspect_binedges(2)) num2str(aspect_binedges(3)) num2str(aspect_b
 % ATL08
 subplot(3,3,4);
 hold on
-groupAspect = discretize(E_08.aspect_mean,aspect_binedges,'categorical',bins);
+groupAspect = discretize(I_08.aspect,aspect_binedges,'categorical',bins);
 boxchart(groupAspect,ResidualsAll{1}(:,3),'BoxFaceColor',colors{1}(3,:),'MarkerStyle','none')
-ylim([-6,4])
+ylim([-3,1])
 set(gca,'fontsize',16,'box','on'); drawnow;
 xlabel('Aspect (degrees)','fontsize',16); ylabel('Elevation residuals (m)','fontsize',16);
 % ATL06
@@ -428,7 +428,7 @@ subplot(3,3,5);
 hold on
 groupAspect = discretize(E_06.aspect_mean,aspect_binedges,'categorical',bins);
 boxchart(groupAspect,ResidualsAll{2}(:,1),'BoxFaceColor',colors{2}(3,:),'MarkerStyle','none')
-ylim([-6,4])
+ylim([-3,1])
 set(gca,'fontsize',16,'box','on'); drawnow;
 xlabel('Aspect (degrees)','fontsize',16); 
 % ATL06-class
@@ -436,7 +436,7 @@ subplot(3,3,6);
 hold on
 groupAspect = discretize(E_06_class.aspect_mean,aspect_binedges,'categorical',bins);
 boxchart(groupAspect,ResidualsAll{3}(:,1),'BoxFaceColor',colors{3}(3,:),'MarkerStyle','none')
-ylim([-6,4])
+ylim([-3,1])
 set(gca,'fontsize',16,'box','on'); drawnow;
 xlabel('Aspect (degrees)','fontsize',16); 
 %SLOPE
@@ -444,9 +444,9 @@ bins = {num2str(slope_binedges(2)) num2str(slope_binedges(3)) num2str(slope_bine
 % ATL08
 subplot(3,3,7);
 hold on
-groupSlope = discretize(E_08.slope_mean,slope_binedges,'categorical',bins);
+groupSlope = discretize(I_08.slope,slope_binedges,'categorical',bins);
 boxchart(groupSlope,ResidualsAll{1}(:,3),'BoxFaceColor',colors{1}(3,:),'MarkerStyle','none')
-ylim([-6,4])
+ylim([-6,6])
 set(gca,'fontsize',16,'box','on'); drawnow;
 xlabel('Slope (degrees)','fontsize',16); ylabel('Elevation residuals (m)','fontsize',16);
 % ATL06
@@ -454,7 +454,7 @@ subplot(3,3,8);
 hold on
 groupSlope = discretize(E_06.slope_mean,slope_binedges,'categorical',bins);
 boxchart(groupSlope,ResidualsAll{2}(:,1),'BoxFaceColor',colors{2}(3,:),'MarkerStyle','none')
-ylim([-6,4])
+ylim([-4,2])
 set(gca,'fontsize',16,'box','on'); drawnow;
 xlabel('Slope (degrees)','fontsize',16); 
 % ATL06-class
@@ -462,7 +462,7 @@ subplot(3,3,9);
 hold on
 groupSlope = discretize(E_06_class.slope_mean,slope_binedges,'categorical',bins);
 boxchart(groupSlope,ResidualsAll{3}(:,1),'BoxFaceColor',colors{3}(3,:),'MarkerStyle','none')
-ylim([-6,4])
+ylim([-4,2])
 set(gca,'fontsize',16,'box','on'); drawnow;
 xlabel('Slope (degrees)','fontsize',16); 
 %% Save figs

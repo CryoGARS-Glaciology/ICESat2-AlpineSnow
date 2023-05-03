@@ -285,7 +285,7 @@ ticks = min(datenum):a:max(datenum);
 yticks(ticks)
 yticklabels(string(dates,'MM-yyyy'))
 %-------------------------------------------------------------------------
-% %% Single Track plots
+%% Single Track plots
 % % ATL06 w/ atl08 classification
 % date = '26-Jan-2020'; %pick track date
 % dates = datetime(I_on{3}.time.Year,I_on{3}.time.Month,I_on{3}.time.Day);
@@ -314,15 +314,16 @@ yticklabels(string(dates,'MM-yyyy'))
 % set(gcf,'position',[50 50 800 400]);
 % 
 % %%
-% % plot map + track
-% fig5 = figure(5);
-% imagesc(x,y,DTM) 
-% daspect([1 1 1])
-% colormap(cmocean('grey'))
-% hold on
-% scatter([I_on_track.Easting./(10^3)],[I_on_track.Northing./(10^3)],[],'g','.')
-% xlabel('Easting (km)')
-% ylabel('Northing (km)')
-% set(gca,'fontsize',16);
+% plot map + tracks
+fig5 = figure(5);
+imagesc(x,y,DTM) 
+daspect([1 1 1])
+colormap(cmocean('grey'))
+hold on
+scatter([I_06.Easting./(10^3)],[I_06.Northing./(10^3)],[],'g','.')
+xlabel('Easting (km)')
+ylabel('Northing (km)')
+set(gca,'fontsize',16);
+set(gca,'Ydir','normal')
 % 
 % 
