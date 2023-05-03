@@ -21,3 +21,6 @@
 
 # Ignore Sites directory
 **/Sites/
+
+# Ignore Figures directory
+**/Figures/
