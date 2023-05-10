@@ -17,17 +17,17 @@ addpath(['./functions'])
 addpath(['/Users/karinazikan/Documents/cmocean'])
 
 %Folder path 
-folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/DCEW/';
+folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/';
 %site abbreviation for file names
-abbrev = 'DCEW';
+abbrev = 'RCEW';
 
 % DEM path
-DTM_name = [folderpath 'DEMs/DryCreekBase1m_WGS84UTM11_DEM.tif'];
+DTM_name = [folderpath 'DEMs/RCEW_1m_WGS84UTM11_WGS84.tif'];
 
 %%
 %File paths
-icesat2_atl08 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL08'];
-ref_elevations_atl08 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL08-params'];
+icesat2_atl08 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL08-params'];
+ref_elevations_atl08 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL08-ref-elevations'];
 
 icesat2_atl06 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr'];
 ref_elevations_atl06 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-params'];
@@ -224,7 +224,7 @@ title('ATL06 with ATL08 photon classification');
 hold off
 
 %-------------------------------------------------------------------------
-%% Grouped data plot - elevations
+%% Grouped data plots 
 clear SnowDepthTable
 % ATL06 classified
 Residuals =  I_06class.h_mean - E_06class.elevation_report_nw_mean;
