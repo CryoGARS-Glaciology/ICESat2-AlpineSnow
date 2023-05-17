@@ -25,7 +25,7 @@ abbrev = 'RCEW';
 DTM_name = [folderpath 'DEMs/RCEW_1m_WGS84UTM11_WGS84.tif'];
 
 %Turn slope correction off or on
-slope_correction = 1; % 0 = off, 1 = on
+slope_correction = 0; % 0 = off, 1 = on
 
 %%
 %File paths
@@ -241,12 +241,12 @@ if slope_correction == 0
 elseif slope_correction == 1
     SnowDepthAll = Residuals - median(Residuals_off{3},'omitnan');
     %calculate quadratic slope correction
-    x= E_06class.slope_mean; y = SnowDepthAll;
+    x= slope; y = SnowDepthAll;
     ind = isnan(x) | isnan(y); %index nans
     x(ind) = []; y(ind) = []; %remove nans
     p = polyfit(x,y,2); % fit quadratic
     % Vertical corregistration
-    SnowDepthAll = SnowDepthAll-polyval(p,E_06class.slope_mean);
+    SnowDepthAll = differences-median(Residuals_off{3},'omitnan')-polyval(p,slope);
 else
     error('slope_correction must be set to 0 (no slope correction) or 1 (slope correction applied)')
 end
@@ -341,7 +341,7 @@ for k = 1:length(dates)
 end
 
 %% Plot elevation grouped snow depths
-fig4 = figure(10); clf
+fig4 = figure(4); clf
 datenum = convertTo(dates,'yyyymmdd');
 imagesc(elev_binedges([2:length(elev_binedges)]),datenum,SnowDepthMedArray_elev,[-3 3])
 cmap = cmocean('-balance'); cmap = [ 0 0 0 ; cmap ];
@@ -353,7 +353,7 @@ ticks = min(datenum):a:max(datenum);
 yticks(ticks)
 yticklabels(string(dates,'MM-yyyy'))
 
-fig5 = figure(11); clf
+fig5 = figure(5); clf
 imagesc(aspect_binedges([2:length(aspect_binedges)]),datenum,SnowDepthMedArray_aspect,[-3 3])
 cmap = cmocean('-balance'); cmap = [ 0 0 0 ; cmap ];
 colormap(cmap); c = colorbar;
@@ -364,7 +364,7 @@ ticks = min(datenum):a:max(datenum);
 yticks(ticks)
 yticklabels(string(dates,'MM-yyyy'))
 
-fig6 = figure(12); clf
+fig6 = figure(6); clf
 imagesc(slope_binedges([2:length(slope_binedges)]),datenum,SnowDepthMedArray_slope,[-3 3])
 cmap = cmocean('-balance'); cmap = [ 0 0 0 ; cmap ];
 colormap(cmap); c = colorbar;
