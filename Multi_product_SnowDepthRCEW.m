@@ -238,8 +238,10 @@ Residuals(Residuals > 80) = NaN; Residuals(Residuals < -80) = NaN; %remove extre
 if slope_correction == 0
     % Vertical corregistration
     SnowDepthAll = Residuals - median(Residuals_off{3},'omitnan');
+    SnowDepthAll(SnowDepthAll > 13) = NaN; SnowDepthAll(SnowDepthAll < -13) = NaN; %remove extreme outliers
 elseif slope_correction == 1
     SnowDepthAll = Residuals - median(Residuals_off{3},'omitnan');
+    SnowDepthAll(SnowDepthAll > 13) = NaN; SnowDepthAll(SnowDepthAll < -13) = NaN; %remove extreme outliers
     %calculate quadratic slope correction
     x= E_06class.slope_mean; y = SnowDepthAll;
     ind = isnan(x) | isnan(y); %index nans
@@ -341,11 +343,11 @@ for k = 1:length(dates)
 end
 
 %% Plot elevation grouped snow depths
-fig4 = figure(10); clf
+fig4 = figure(4); clf
 datenum = convertTo(dates,'yyyymmdd');
 imagesc(elev_binedges([2:length(elev_binedges)]),datenum,SnowDepthMedArray_elev,[-3 3])
 cmap = cmocean('-balance'); cmap = [ 0 0 0 ; cmap ];
-colormap(cmap); c = colorbar;
+colormap(cmap); c = colorbar; c.Label.String = 'Median Residual (m)';
 set(gca,'fontsize',16);
 xlabel('Elevation (m)')
 a=(max(datenum)-min(datenum))/(length(datenum)-1);
@@ -353,10 +355,10 @@ ticks = min(datenum):a:max(datenum);
 yticks(ticks)
 yticklabels(string(dates,'MM-yyyy'))
 
-fig5 = figure(11); clf
+fig5 = figure(5); clf
 imagesc(aspect_binedges([2:length(aspect_binedges)]),datenum,SnowDepthMedArray_aspect,[-3 3])
 cmap = cmocean('-balance'); cmap = [ 0 0 0 ; cmap ];
-colormap(cmap); c = colorbar;
+colormap(cmap); c = colorbar; c.Label.String = 'Median Residual (m)';
 set(gca,'fontsize',16);
 xlabel('Aspect (degrees)')
 a=(max(datenum)-min(datenum))/(length(datenum)-1);
@@ -364,10 +366,10 @@ ticks = min(datenum):a:max(datenum);
 yticks(ticks)
 yticklabels(string(dates,'MM-yyyy'))
 
-fig6 = figure(12); clf
+fig6 = figure(6); clf
 imagesc(slope_binedges([2:length(slope_binedges)]),datenum,SnowDepthMedArray_slope,[-3 3])
 cmap = cmocean('-balance'); cmap = [ 0 0 0 ; cmap ];
-colormap(cmap); c = colorbar;
+colormap(cmap); c = colorbar; c.Label.String = 'Median Residual (m)';
 set(gca,'fontsize',16);
 xlabel('Slope (degrees)')
 a=(max(datenum)-min(datenum))/(length(datenum)-1);

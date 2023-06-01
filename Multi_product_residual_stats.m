@@ -18,12 +18,13 @@ addpath(['./functions'])
 addpath(['/Users/karinazikan/Documents/cmocean'])
 
 %Folder path 
-folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/DCEW/';
+folderpath = '/Users/karinazikan/Documents/GitHub/ICESat2-AlpineSnow/Sites/DCEW/';
 %site abbreviation for file names
 abbrev = 'DCEW';
 %Set snowcover to 'snowonn' or 'snowoff'
-snowcover = 'snowonn';
-
+snowcover = 'snowoff';
+%Turn slope correction off or on
+slope_correction = 0; % 0 = off, 1 = on
 %%
 
 %File paths
@@ -53,38 +54,6 @@ I_06 = readtable(icesat2_atl06);
 I_06_class = readtable(icesat2_atl06_class);
 
 footwidth = 11; % approx. width of icesat2 shot footprint in meters
-
-%% Plot Site + Tracks
-% DTM_name = '/Users/karinazikan/Documents/ICESat2-snow-code/DryCreek/DCEW_DEM/DryCreekBase1m_WGS84UTM11_WGS84.tif';
-% [DTM,Ref] = readgeoraster(DTM_name);
-% if isfield(Ref,'LatitudeLimits')
-%     [latgrid,longrid] = meshgrid(Ref.LongitudeLimits(1)+0.5*Ref.CellExtentInLongitude:Ref.CellExtentInLongitude:Ref.LongitudeLimits(2)-0.5*Ref.CellExtentInLongitude,...
-%         Ref.LatitudeLimits(2)-0.5*Ref.CellExtentInLatitude:-Ref.CellExtentInLatitude:Ref.LatitudeLimits(1)+0.5*Ref.CellExtentInLatitude);
-%     [xgrid, ygrid,~] = wgs2utm(latgrid,longrid);
-% else
-%     x = Ref.XWorldLimits(1)+0.5*Ref.CellExtentInWorldX:Ref.CellExtentInWorldX:Ref.XWorldLimits(2)-0.5*Ref.CellExtentInWorldX;
-%     if strcmp(Ref.ColumnsStartFrom,'north')
-%         y = Ref.YWorldLimits(2)-0.5*Ref.CellExtentInWorldY:-Ref.CellExtentInWorldY:Ref.YWorldLimits(1)+0.5*Ref.CellExtentInWorldY;
-%     else
-%         y = Ref.YWorldLimits(1)+0.5*Ref.CellExtentInWorldY:Ref.CellExtentInWorldY:Ref.YWorldLimits(2)-0.5*Ref.CellExtentInWorldY;
-%     end
-%     [xgrid, ygrid] = meshgrid(x, y); % create grids of each of the x and y coords
-% end
-% DTM(DTM>(2.5*10^3)) = NaN;
-% x = x./(10^3); % to km
-% y = y./(10^3);% to km
-% %y = flip(y);
-% DTM(DTM<0) = NaN;
-% 
-% fig1 = figure(1);
-% imagesc(x,y,DTM) 
-% daspect([1 1 1])
-% colormap(cmocean('grey'))
-% hold on
-% scatter([I_06.Easting./(10^3)],[I_06.Northing./(10^3)],[],'g','.')
-% xlabel('Easting (km)')
-% ylabel('Northing (km)')
-% set(gca,'fontsize',16);
 
 %% Filter snow-on or snow-off for ATL08
 % % % % % bright = I_08.Brightness_Flag;
@@ -188,16 +157,34 @@ for i = 1:N_Products
         differences(differences > 80) = NaN; differences(differences < -80) = NaN; %remove extreme outliers
         Dmean{i}(:,j) = nanmean(differences); % calculate mean of diferences
         Dstd{i}(:,j) = std(differences,'omitnan'); % calculate std of diferences
-        Dmad{i}(j,:) = nanmean(abs(differences-Dmean{i}(:,j)));
+        Dmed{i}(:,j) = median(differences,'omitnan');
+        Dmad{i}(:,j) = median(abs(differences-Dmean{i}(:,j)),'omitnan');
         zrmse{i}(:,j) = sqrt(nansum((differences).^2)./length(differences)); %calculate rmse of  differeces
-%        Dks_test(i,:) = kstest(differences); %kolmagorov smirnof test
+
+        %        Dks_test(i,:) = kstest(differences); %kolmagorov smirnof test
 
         %         % Removing residuals below -13
         %         ix = find(differences < -13);
         %         zmod(ix) = NaN;
         %         differences(ix) = NaN;
 
-        Residuals(:,j) = differences;
+        % Vertically corregister
+        if slope_correction == 0
+            % Vertical corregistration
+            Residuals(:,j) = differences-Dmed{i}(:,j); 
+        elseif slope_correction == 1
+            Residuals = differences-Dmed{i}(:,j);
+            %calculate quadratic slope correction
+            x= slope; y = Residuals;
+            ind = isnan(x) | isnan(y); %index nans
+            x(ind) = []; y(ind) = []; %remove nans
+            p = polyfit(x,y,2); % fit quadratic
+            % Vertical corregistration
+            Residuals(:,j) = differences-Dmed{i}(:,j)-polyval(p,slope); 
+        else
+            error('slope_correction must be set to 0 (no slope correction) or 1 (slope correction applied)')
+        end
+            
         %   Residuals(:,1) is comparison to non weighted mean elevations
         %   Residuals(:,2) is comparison to weighted mean elevations
         %   Residuals(:,3) is comparison to weighted & fitted elevations
@@ -218,52 +205,40 @@ for i = 1:N_Products
     legend(h,['DEM: Non-weighted mean, std = ' num2str(Dstd{i}(:,1))],['DEM: Weighted mean, std = ' num2str(Dstd{i}(:,2))],['DEM: Weighted and fitted, std = ' num2str(Dstd{i}(:,3))],'Location','northwest');
     xlabel('Vertical offset (m)'); ylabel('Probability density'); title(acronym);
 
-    % Reference pdfs
-    fig3 = figure(3);
-    subplot(N_Products,1,i); set(gcf,'position',[50 50 800 500]); hold on
-    binwidth = 0.2;
-    fplot(@(x) mynormpdf(x,Dmean{i}(:,1), Dstd{i}(:,1)),[-10 8], 'Linewidth', 2,'Color',colors{i}(1,:));
-    fplot(@(x) mynormpdf(x,Dmean{i}(:,2), Dstd{i}(:,2)),[-10 8], 'Linewidth', 2,'Color',colors{i}(2,:));
-    fplot(@(x) mynormpdf(x,Dmean{i}(:,3), Dstd{i}(:,3)),[-10 8], 'Linewidth', 2,'Color',colors{i}(3,:));
-    plot([0,0],[0,.8], 'linewidth', 2, 'Color','k') % plot reference 0 line
-    set(gca,'fontsize',16,'xlim',[-10 8]);
-    legend(h,['DEM: Non-weighted mean, std = ' num2str(Dstd{i}(:,1))],['DEM: Weighted mean, std = ' num2str(Dstd{i}(:,2))],['DEM: Weighted and fitted, std = ' num2str(Dstd{i}(:,3))],'Location','northwest');
-    xlabel('Vertical offset (m)'); ylabel('Probability density'); title(acronym);
-
     clear elevation_report Residuals
 end
 %% Plots outside loop
 % Products historgrams
-fig4 = figure(4); clf; hold on
-for i = 1:N_Products
-    if i == 1
-        h(i) = histogram(ResidualsAll{i}(:,3),'Normalization','pdf');  h(i).FaceAlpha = 1; h(i).BinWidth = binwidth; h(i).FaceColor = colors{i}(3,:);  h(i).EdgeColor = 'k';
-        fplot(@(x) mynormpdf(x,nanmean(ResidualsAll{i}(:,3)), std(ResidualsAll{i}(:,3),'omitnan')),[-10 8], 'Linewidth', 2,'Color',colors{i}(2,:));
-    else
-        h(i) = histogram(ResidualsAll{i}(:,1),'Normalization','pdf');  h(i).FaceAlpha = .5; h(i).BinWidth = binwidth; h(i).FaceColor = colors{i}(3,:);  h(i).EdgeColor = 'k';
-        fplot(@(x) mynormpdf(x,nanmean(ResidualsAll{i}(:,1)), std(ResidualsAll{i}(:,1),'omitnan')),[-10 8], 'Linewidth', 2,'Color',colors{i}(2,:));
-    end
-end
-%plot([0,0],[0,.8], 'linewidth', 2, 'Color','k') % plot reference 0 line
-set(gca,'fontsize',16,'xlim',[-4 2]);
-set(gcf,'position',[50 50 800 400]);
-legend('ATL08','ATL08 pdf','ATL06sr','ATL06sr pdf','ATL06sr ATL08 clasifications','ATL06sr ATL08 clasifications pdf');
-xlabel('Vertical offset (m)'); ylabel('Probability density');
-txt = {['N-08 = ' num2str(length(ResidualsAll{1}(:,1))-sum(isnan(ResidualsAll{1}(:,1))))],['N-06 = ' num2str(length(ResidualsAll{2}(:,1))-sum(isnan(ResidualsAll{2}(:,1))))],['N-06_{class} = ' num2str(length(ResidualsAll{3}(:,1))-sum(isnan(ResidualsAll{3}(:,1))))]};
-text(-8,.2,txt);
+% fig4 = figure(4); clf; hold on
+% for i = 1:N_Products
+% %     if i == 1
+% %         h(i) = histogram(ResidualsAll{i}(:,3),'Normalization','pdf');  h(i).FaceAlpha = 1; h(i).BinWidth = binwidth; h(i).FaceColor = colors{i}(3,:);  h(i).EdgeColor = 'k';
+% %         fplot(@(x) mynormpdf(x,nanmean(ResidualsAll{i}(:,3)), std(ResidualsAll{i}(:,3),'omitnan')),[-10 8], 'Linewidth', 2,'Color',colors{i}(2,:));
+% %     else
+%         h(i) = histogram(ResidualsAll{i}(:,1),'Normalization','pdf');  h(i).FaceAlpha = .5; h(i).BinWidth = binwidth; h(i).FaceColor = colors{i}(3,:);  h(i).EdgeColor = 'k';
+%         fplot(@(x) mynormpdf(x,nanmean(ResidualsAll{i}(:,1)), std(ResidualsAll{i}(:,1),'omitnan')),[-10 8], 'Linewidth', 2,'Color',colors{i}(2,:));
+% %     end
+% end
+% %plot([0,0],[0,.8], 'linewidth', 2, 'Color','k') % plot reference 0 line
+% set(gca,'fontsize',16,'xlim',[-4 2]);
+% set(gcf,'position',[50 50 800 400]);
+% legend('ATL08','ATL08 pdf','ATL06sr','ATL06sr pdf','ATL06sr ATL08 clasifications','ATL06sr ATL08 clasifications pdf');
+% xlabel('Vertical offset (m)'); ylabel('Probability density');
+% txt = {['N-08 = ' num2str(length(ResidualsAll{1}(:,1))-sum(isnan(ResidualsAll{1}(:,1))))],['N-06 = ' num2str(length(ResidualsAll{2}(:,1))-sum(isnan(ResidualsAll{2}(:,1))))],['N-06_{class} = ' num2str(length(ResidualsAll{3}(:,1))-sum(isnan(ResidualsAll{3}(:,1))))]};
+% text(-8,.2,txt);
 
 %Non-parametirc pdfs w/ histograms
 fig5 = figure(5); clf; hold on
 for i = 1:N_Products
-    if i == 1
-        h(i) = histogram(ResidualsAll{i}(:,3),'Normalization','pdf');  h(i).FaceAlpha = 1; h(i).BinWidth = binwidth; h(i).FaceColor = colors{i}(3,:);  h(i).EdgeColor = 'k';
-        pd = fitdist(ResidualsAll{i}(:,3),'kernel','Kernel','normal'); 
-        fplot(@(x) pdf(pd,x),[-10 8], 'Linewidth', 2,'Color',colors{i}(2,:));
-    else
+%     if i == 1
+%         h(i) = histogram(ResidualsAll{i}(:,3),'Normalization','pdf');  h(i).FaceAlpha = 1; h(i).BinWidth = binwidth; h(i).FaceColor = colors{i}(3,:);  h(i).EdgeColor = 'k';
+%         pd = fitdist(ResidualsAll{i}(:,3),'kernel','Kernel','normal'); 
+%         fplot(@(x) pdf(pd,x),[-10 8], 'Linewidth', 2,'Color',colors{i}(2,:));
+%     else
         h(i) = histogram(ResidualsAll{i}(:,1),'Normalization','pdf');  h(i).FaceAlpha = .5; h(i).BinWidth = binwidth; h(i).FaceColor = colors{i}(3,:);  h(i).EdgeColor = 'k';
         pd = fitdist(ResidualsAll{i}(:,1),'kernel','Kernel','normal'); 
         fplot(@(x) pdf(pd,x),[-10 8], 'Linewidth', 2,'Color',colors{i}(2,:));
-    end
+%     end
 end
 %plot([0,0],[0,.8], 'linewidth', 2, 'Color','k') % plot reference 0 line
 set(gca,'fontsize',16,'xlim',[-4 2]);
@@ -275,69 +250,71 @@ text(-3,.2,txt);
 
 fig6 = figure(6); clf; hold on
 for i = 1:N_Products
-    if i == 1
-        pd = fitdist(ResidualsAll{i}(:,3),'kernel','Kernel','normal'); 
-        fplot(@(x) pdf(pd,x),[-10 8], 'Linewidth', 2,'Color',colors{i}(3,:));
-    else
+%     if i == 1
+%         pd = fitdist(ResidualsAll{i}(:,3),'kernel','Kernel','normal'); 
+%         fplot(@(x) pdf(pd,x),[-10 8], 'Linewidth', 2,'Color',colors{i}(3,:));
+%     else
         pd = fitdist(ResidualsAll{i}(:,1),'kernel','Kernel','normal'); 
-        fplot(@(x) pdf(pd,x),[-10 8], 'Linewidth', 2,'Color',colors{i}(3,:));
-    end
+        fplot(@(x) pdf(pd,x),[-10 8], 'Linewidth', 3,'Color',colors{i}(3,:));
+%     end
 end
 set(gca,'fontsize',16);
 set(gcf,'position',[50 50 800 400]);
-legend('ATL08','ATL06sr','ATL06sr ATL08 clasifications','Location','northwest');
+legend('ATL08','ATL06','Classified ATL06','Location','northwest');
 xlabel('Vertical offset (m)'); ylabel('Probability density');
 hold off
 
-% Normal pdfs for each tested product
-fig7 = figure(7); clf; hold on
-for i = 1:N_Products
-    if i == 1
-        fplot(@(x) mynormpdf(x,Dmean{i}(:,1), Dstd{i}(:,1)),[-10 8], 'Linewidth', 3,'Color',colors{i}(3,:));
-    else
-        fplot(@(x) mynormpdf(x,Dmean{i}(:,1), Dstd{i}(:,1)),[-10 8], 'Linewidth', 3,'Color',colors{i}(3,:));
-    end
-end
-set(gca,'fontsize',16);
-set(gcf,'position',[50 50 800 400]);
-legend('ATL08','ATL06sr','ATL06sr ATL08 clasifications','Location','northwest');
-xlabel('Vertical offset (m)'); ylabel('Probability density');
-hold off
+% % Normal pdfs for each tested product
+% fig7 = figure(7); clf; hold on
+% for i = 1:N_Products
+% %     if i == 1
+% %         fplot(@(x) mynormpdf(x,Dmean{i}(:,1), Dstd{i}(:,1)),[-10 8], 'Linewidth', 3,'Color',colors{i}(3,:));
+% %     else
+%         fplot(@(x) mynormpdf(x,Dmean{i}(:,1), Dstd{i}(:,1)),[-10 8], 'Linewidth', 3,'Color',colors{i}(3,:));
+% %     end
+% end
+% set(gca,'fontsize',16);
+% set(gcf,'position',[50 50 800 400]);
+% legend('ATL08','ATL06sr','ATL06sr ATL08 clasifications','Location','northwest');
+% xlabel('Vertical offset (m)'); ylabel('Probability density');
+% hold off
 
 %% create boxcharts for each terrain parameter
 ResidualsTable.residuals = [ResidualsAll{1}(:,3); ResidualsAll{2}(:,1); ResidualsAll{3}(:,1)];
 ResidualsTable.product = [ResidualsAll{1}(:,4); ResidualsAll{2}(:,4); ResidualsAll{3}(:,4)];
 ResidualsTable.elevations = [E_08.elevation_report_mean; E_06.elevation_report_mean; E_06_class.elevation_report_mean];
-ResidualsTable.aspect = [E_08.aspect_mean; E_06.aspect_mean; E_06_class.aspect_mean];
-ResidualsTable.slope = [E_08.slope_mean; E_06.slope_mean; E_06_class.slope_mean];
+ResidualsTable.aspect = [I_08.aspect; E_06.aspect_mean; E_06_class.aspect_mean];
+ResidualsTable.slope = [I_08.slope; E_06.slope_mean; E_06_class.slope_mean];
 
 % ResidualsTable.residuals = [ResidualsAll{2}(:,1); ResidualsAll{3}(:,1)];
 % ResidualsTable.product = [ResidualsAll{2}(:,4); ResidualsAll{3}(:,4)];
 % ResidualsTable.elevations = [E_06.elevation_report_mean; E_06_class.elevation_report_mean];
 % ResidualsTable.aspect = [I_06.aspect; I_06_class.aspect];
 % ResidualsTable.slope = [I_06.slope; I_06_class.slope];
+
+Nbin = 8; %set humber of bins for box plots
 fig8 = figure(8); clf
 %ELEVATION
 subplot(3,1,1);
-h = histogram(E_08.elevation_report_mean(~isnan(ResidualsAll{1}(:,1))),5);
+h = histogram(E_08.elevation_report_mean(~isnan(ResidualsAll{1}(:,1))),Nbin);
 elev_binwidth = h.BinWidth; elev_binedges = h.BinEdges;
 clear h;
 xlabel('Elevation (m a.s.l.)','fontsize',16); %ylabel('Elevation residuals (m)','fontsize',16);
 %close(gcf);
-%SLOPE
-subplot(3,1,2);
-h = histogram(E_08.slope_mean(~isnan(ResidualsAll{1}(:,1))),5);
-slope_binwidth = h.BinWidth; slope_binedges = h.BinEdges;
-clear h;
-xlabel('Aspect (degrees)','fontsize',16); ylabel('Observations','fontsize',16);
-%close(gcf);
 %ASPECT
-subplot(3,1,3);
-h = histogram(E_08.aspect_mean(~isnan(ResidualsAll{1}(:,1))),5);
+subplot(3,1,2);
+h = histogram(I_08.aspect(~isnan(ResidualsAll{1}(:,1))),Nbin);
 aspect_binwidth = h.BinWidth; aspect_binedges = h.BinEdges;
 clear h;
-xlabel('Slope (degrees)','fontsize',16); 
-%close(gcf);
+xlabel('Aspect (degrees)','fontsize',16); ylabel('Observations','fontsize',16);
+% close(gcf);
+%SLOPE
+subplot(3,1,3);
+h = histogram(I_08.slope(~isnan(ResidualsAll{1}(:,1))),Nbin);
+slope_binwidth = h.BinWidth; slope_binedges = h.BinEdges;
+clear h;
+xlabel('Slope (degrees)','fontsize',16);
+% close(gcf);
 
 whiskerline = '-'; outliermarker = 'o';
 
@@ -385,13 +362,16 @@ whiskerline = '-'; outliermarker = 'o';
 % boxplot figure seperate products
 fig10 = figure(10); clf
 %ELEVATION
-bins = {num2str(elev_binedges(2)) num2str(elev_binedges(3)) num2str(elev_binedges(4)) num2str(elev_binedges(5)) num2str(elev_binedges(6))};
+bins = {num2str(elev_binedges(2))};
+for i= 3:length(elev_binedges)
+    bins = [bins; {num2str(elev_binedges(i))}];
+end
 % ATL08
 subplot(3,3,1);
 hold on
 groupElev = discretize(E_08.elevation_report_mean,elev_binedges,'categorical',bins);
 boxchart(groupElev,ResidualsAll{1}(:,3),'BoxFaceColor',colors{1}(3,:),'MarkerStyle','none')
-ylim([-6,4])
+ylim([-2,2])
 set(gca,'fontsize',16,'box','on'); drawnow;
 title('ATL08');
 xlabel('Elevation (m a.s.l.)','fontsize',16); ylabel('Elevation residuals (m)','fontsize',16);
@@ -400,7 +380,7 @@ subplot(3,3,2);
 hold on
 groupElev = discretize(E_06.elevation_report_mean,elev_binedges,'categorical',bins);
 boxchart(groupElev,ResidualsAll{2}(:,1),'BoxFaceColor',colors{2}(3,:),'MarkerStyle','none')
-ylim([-6,4])
+ylim([-2,2])
 set(gca,'fontsize',16,'box','on'); drawnow;
 title('ATL06');
 xlabel('Elevation (m a.s.l.)','fontsize',16); 
@@ -409,18 +389,21 @@ subplot(3,3,3);
 hold on
 groupElev = discretize(E_06_class.elevation_report_mean,elev_binedges,'categorical',bins);
 boxchart(groupElev,ResidualsAll{3}(:,1),'BoxFaceColor',colors{3}(3,:),'MarkerStyle','none')
-ylim([-6,4])
+ylim([-2,2])
 set(gca,'fontsize',16,'box','on'); drawnow;
 title('ATL06 classified');
 xlabel('Elevation (m a.s.l.)','fontsize',16); 
 %ASPECT
-bins = {num2str(aspect_binedges(2)) num2str(aspect_binedges(3)) num2str(aspect_binedges(4)) num2str(aspect_binedges(5)) num2str(aspect_binedges(6))};
+bins = {num2str(aspect_binedges(2))};
+for i= 3:length(aspect_binedges)
+    bins = [bins; {num2str(aspect_binedges(i))}];
+end
 % ATL08
 subplot(3,3,4);
 hold on
-groupAspect = discretize(E_08.aspect_mean,aspect_binedges,'categorical',bins);
+groupAspect = discretize(I_08.aspect,aspect_binedges,'categorical',bins);
 boxchart(groupAspect,ResidualsAll{1}(:,3),'BoxFaceColor',colors{1}(3,:),'MarkerStyle','none')
-ylim([-6,4])
+ylim([-2,2])
 set(gca,'fontsize',16,'box','on'); drawnow;
 xlabel('Aspect (degrees)','fontsize',16); ylabel('Elevation residuals (m)','fontsize',16);
 % ATL06
@@ -428,7 +411,7 @@ subplot(3,3,5);
 hold on
 groupAspect = discretize(E_06.aspect_mean,aspect_binedges,'categorical',bins);
 boxchart(groupAspect,ResidualsAll{2}(:,1),'BoxFaceColor',colors{2}(3,:),'MarkerStyle','none')
-ylim([-6,4])
+ylim([-2,2])
 set(gca,'fontsize',16,'box','on'); drawnow;
 xlabel('Aspect (degrees)','fontsize',16); 
 % ATL06-class
@@ -436,17 +419,20 @@ subplot(3,3,6);
 hold on
 groupAspect = discretize(E_06_class.aspect_mean,aspect_binedges,'categorical',bins);
 boxchart(groupAspect,ResidualsAll{3}(:,1),'BoxFaceColor',colors{3}(3,:),'MarkerStyle','none')
-ylim([-6,4])
+ylim([-2,2])
 set(gca,'fontsize',16,'box','on'); drawnow;
 xlabel('Aspect (degrees)','fontsize',16); 
 %SLOPE
-bins = {num2str(slope_binedges(2)) num2str(slope_binedges(3)) num2str(slope_binedges(4)) num2str(slope_binedges(5)) num2str(slope_binedges(6))};
+bins = {num2str(slope_binedges(2))};
+for i= 3:length(slope_binedges)
+    bins = [bins; {num2str(slope_binedges(i))}];
+end
 % ATL08
 subplot(3,3,7);
 hold on
-groupSlope = discretize(E_08.slope_mean,slope_binedges,'categorical',bins);
+groupSlope = discretize(I_08.slope,slope_binedges,'categorical',bins);
 boxchart(groupSlope,ResidualsAll{1}(:,3),'BoxFaceColor',colors{1}(3,:),'MarkerStyle','none')
-ylim([-6,4])
+ylim([-6,6])
 set(gca,'fontsize',16,'box','on'); drawnow;
 xlabel('Slope (degrees)','fontsize',16); ylabel('Elevation residuals (m)','fontsize',16);
 % ATL06
@@ -454,7 +440,7 @@ subplot(3,3,8);
 hold on
 groupSlope = discretize(E_06.slope_mean,slope_binedges,'categorical',bins);
 boxchart(groupSlope,ResidualsAll{2}(:,1),'BoxFaceColor',colors{2}(3,:),'MarkerStyle','none')
-ylim([-6,4])
+ylim([-3,3])
 set(gca,'fontsize',16,'box','on'); drawnow;
 xlabel('Slope (degrees)','fontsize',16); 
 % ATL06-class
@@ -462,9 +448,10 @@ subplot(3,3,9);
 hold on
 groupSlope = discretize(E_06_class.slope_mean,slope_binedges,'categorical',bins);
 boxchart(groupSlope,ResidualsAll{3}(:,1),'BoxFaceColor',colors{3}(3,:),'MarkerStyle','none')
-ylim([-6,4])
+ylim([-3,3])
 set(gca,'fontsize',16,'box','on'); drawnow;
 xlabel('Slope (degrees)','fontsize',16); 
+
 %% Save figs
 % saveas(fig1,['/Users/karinazikan/Documents/figures/' abbrev '_atl08_tracks'],'png')
 % saveas(fig2,['/Users/karinazikan/Documents/figures/' abbrev 'DEMmethods_hist'],'png')

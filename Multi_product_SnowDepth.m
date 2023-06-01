@@ -17,7 +17,7 @@ addpath(['./functions'])
 addpath(['/Users/karinazikan/Documents/cmocean'])
 
 %Folder path 
-folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/DCEW/';
+folderpath = '/Users/karinazikan/Documents/GitHub/ICESat2-AlpineSnow/Sites/DCEW/';
 %site abbreviation for file names
 abbrev = 'DCEW';
 
