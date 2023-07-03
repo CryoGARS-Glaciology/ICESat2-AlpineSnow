@@ -18,7 +18,7 @@ addpath(['./functions'])
 addpath(['/Users/karinazikan/Documents/cmocean'])
 
 %Folder path 
-folderpath = '/Users/karinazikan/Documents/GitHub/ICESat2-AlpineSnow/Sites/RCEW/';
+folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/';
 %site abbreviation for file names
 abbrev = 'RCEW';
 %Set snowcover to 'snowonn' or 'snowoff'
@@ -172,6 +172,7 @@ for i = 1:N_Products
         if slope_correction == 0
             % Vertical corregistration
             Residuals(:,j) = differences-Dmed{i}(:,j); 
+            % Residuals(:,j) = differences; 
         elseif slope_correction == 1
             Residuals = differences-Dmed{i}(:,j);
             %calculate quadratic slope correction
@@ -180,7 +181,8 @@ for i = 1:N_Products
             x(ind) = []; y(ind) = []; %remove nans
             p = polyfit(x,y,2); % fit quadratic
             % Vertical corregistration
-            Residuals(:,j) = differences-Dmed{i}(:,j)-polyval(p,slope); 
+            Residuals(:,j) = differences-Dmed{i}(:,j)-polyval(p,slope);
+            % Residuals(:,j) = differences;
         else
             error('slope_correction must be set to 0 (no slope correction) or 1 (slope correction applied)')
         end
@@ -451,6 +453,21 @@ boxchart(groupSlope,ResidualsAll{3}(:,1),'BoxFaceColor',colors{3}(3,:),'MarkerSt
 ylim([-3,3])
 set(gca,'fontsize',16,'box','on'); drawnow;
 xlabel('Slope (degrees)','fontsize',16); 
+
+%%
+% boxplot figure seperate products
+fig1 = figure(1); clf
+for i = 1:3
+    subplot(4,1,i);
+    boxchart(ResidualsAll{i},'Notch','on','MarkerStyle','none')
+end
+subplot(4,1,4)
+clear grp
+grp(1:length(ResidualsAll{1}(:,1))) = 1; 
+grp([length(grp)]:[length(grp)+length(ResidualsAll{2}(:,1))]) = 2;
+grp([length(grp)]:[length(grp)+length(ResidualsAll{3}(:,1))]) = 3;
+boxplot([ResidualsAll{1}(:,1);ResidualsAll{2}(:,1);ResidualsAll{3}(:,1)],grp,'Notch','on')
+
 
 %% Save figs
 % saveas(fig1,['/Users/karinazikan/Documents/figures/' abbrev '_atl08_tracks'],'png')
