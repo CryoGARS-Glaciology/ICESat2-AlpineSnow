@@ -172,7 +172,6 @@ for i = 1:N_Products
         if slope_correction == 0
             % Vertical corregistration
             Residuals(:,j) = differences-Dmed{i}(:,j); 
-            % Residuals(:,j) = differences; 
         elseif slope_correction == 1
             Residuals = differences-Dmed{i}(:,j);
             %calculate quadratic slope correction
@@ -182,18 +181,24 @@ for i = 1:N_Products
             p = polyfit(x,y,2); % fit quadratic
             % Vertical corregistration
             Residuals(:,j) = differences-Dmed{i}(:,j)-polyval(p,slope);
-            % Residuals(:,j) = differences;
         else
             error('slope_correction must be set to 0 (no slope correction) or 1 (slope correction applied)')
         end
-            
         %   Residuals(:,1) is comparison to non weighted mean elevations
         %   Residuals(:,2) is comparison to weighted mean elevations
         %   Residuals(:,3) is comparison to weighted & fitted elevations
 
+        Rmean{i}(:,j) = nanmean(Residuals(:,j)); % calculate mean of Residuals
+        Rstd{i}(:,j) = std(Residuals(:,j),'omitnan'); % calculate std of Residuals
+        Rmed{i}(:,j) = median(Residuals(:,j),'omitnan');
+        Rmad{i}(:,j) = median(abs(Residuals(:,j)-Rmean{i}(:,j)),'omitnan');
+        Rrmse{i}(:,j) = sqrt(nansum((Residuals(:,j)).^2)./length(Residuals(:,j))); %calculate rmse of  Residuals
+        
+
     end
     Residuals(:,4) = i;
     ResidualsAll{i} = Residuals;
+    
     %% Plots
     % Reference historgrams
     fig2 = figure(2);
