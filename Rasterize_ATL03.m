@@ -62,7 +62,7 @@ scatter3(file,"X","Y","Z",Marker=".");
 % %% Write new point cloud
 % writetable(file2,[folderpath 'IS2_Data/' abbrev '-ICESat2-ATL03-2.csv']);
 
-%% Make 11m raster
+%% Make 11m elevation array
 x11 = downsample(x,11); y11 = downsample(y,11);
 
 for i = 1:length(x11)
@@ -75,3 +75,11 @@ for i = 1:length(x11)
         end
     end
 end
+
+%% Create the referencing matrix (R)
+R = georasterref('RasterSize',size(IS2grid), ...
+    'LatitudeLimits',[min(x11) max(x11)],'LongitudeLimits',[min(y11) max(y11)]);
+
+%% Export raster
+filename = [folderpath 'DEMs/' abbrev '-ICESat2-ATL03.tif'];
+geotiffwrite(filename,IS2grid,R)
