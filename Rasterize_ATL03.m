@@ -1,7 +1,7 @@
 clear all
 
 %Folder path 
-folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/';
+folderpath = '/Users/karinazikan/Documents/GitHub/ICESat2-AlpineSnow/Sites/RCEW/';
 DTM_name = 'RCEW_1m_WGS84UTM11_WGS84.tif';
 %site abbreviation for file names
 abbrev = 'RCEW';
@@ -77,9 +77,11 @@ for i = 1:length(x11)
 end
 
 %% Create the referencing matrix (R)
-R = georasterref('RasterSize',size(IS2grid), ...
-    'LatitudeLimits',[min(x11) max(x11)],'LongitudeLimits',[min(y11) max(y11)]);
+R = maprasterref('RasterSize',size(IS2grid), ...
+    'XLimWorld',[min(x11) max(x11)],'YLimWorld',[min(y11) max(y11)]);
+R.ProjectedCRS  = Ref.ProjectedCRS; 
+R.ColumnsStartFrom = 'north';
 
 %% Export raster
 filename = [folderpath 'DEMs/' abbrev '-ICESat2-ATL03.tif'];
-geotiffwrite(filename,IS2grid,R)
+geotiffwrite(filename,IS2grid,R,'CoordRefSysCode','epsg:32611')
