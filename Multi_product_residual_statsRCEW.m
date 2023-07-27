@@ -24,7 +24,9 @@ abbrev = 'RCEW';
 %Set snowcover to 'snowonn' or 'snowoff'
 snowcover = 'snowoff';
 %Turn slope correction off or on
-slope_correction = 0; % 0 = off, 1 = on
+slope_correction = 1; % 0 = off, 1 = on
+%Set slope filtering off or on 
+filter_slopes = 1; % 0 = off, 1 = on
 
 %% Set file paths and colormaps
 %File paths
@@ -110,7 +112,7 @@ for i = 1:N_Products
         acronym = 'ATL08';
 
         % ICESat-2 data
-        zmod = T.Elevation_bestfit(:); % save the fitted 'model' elevations (icesat-2 elevations)
+        % zmod = T.Elevation_bestfit(:); % save the fitted 'model' elevations (icesat-2 elevations)
         zmod = T.Elevation(:); % save the 'model' elevations (icesat-2 elevations)
         zstd = T.std; %save the standard deviation of the icesat-2 elevation estimates
         easts = T.Easting(:); % pull out the easting values
@@ -155,11 +157,17 @@ for i = 1:N_Products
     for j = 1:3
         differences = zmod - elevation_report(:,j); %calculate the icesat2 elevations and the calculated reference elevations
         differences(differences > 80) = NaN; differences(differences < -80) = NaN; %remove extreme outliers
+        if filter_slopes == 1
+            differences(slope >= 20) = NaN; %remove slopes above 30 degrees
+            disp('Slopes above 20 degress filtered out')
+        end
+
         Dmean{i}(:,j) = nanmean(differences); % calculate mean of diferences
         Dstd{i}(:,j) = std(differences,'omitnan'); % calculate std of diferences
         Dmed{i}(:,j) = median(differences,'omitnan');
         Dmad{i}(:,j) = median(abs(differences-Dmean{i}(:,j)),'omitnan');
-        zrmse{i}(:,j) = sqrt(nansum((differences).^2)./length(differences)); %calculate rmse of  differeces
+        Dnmad{i}(:,j) = 1.4826*median(abs(differences-Dmean{i}(:,j)),'omitnan');
+        Drmse{i}(:,j) = sqrt(nansum((differences).^2)./length(differences)); %calculate rmse of  differeces
 
         %        Dks_test(i,:) = kstest(differences); %kolmagorov smirnof test
 
@@ -172,6 +180,7 @@ for i = 1:N_Products
         if slope_correction == 0
             % Vertical corregistration
             Residuals(:,j) = differences-Dmed{i}(:,j); 
+            disp('No slope correction')
         elseif slope_correction == 1
             Residuals = differences-Dmed{i}(:,j);
             %calculate quadratic slope correction
@@ -181,6 +190,7 @@ for i = 1:N_Products
             p = polyfit(x,y,2); % fit quadratic
             % Vertical corregistration
             Residuals(:,j) = differences-Dmed{i}(:,j)-polyval(p,slope);
+            ('Slope correction applied')
         else
             error('slope_correction must be set to 0 (no slope correction) or 1 (slope correction applied)')
         end
@@ -192,6 +202,7 @@ for i = 1:N_Products
         Rstd{i}(:,j) = std(Residuals(:,j),'omitnan'); % calculate std of Residuals
         Rmed{i}(:,j) = median(Residuals(:,j),'omitnan');
         Rmad{i}(:,j) = median(abs(Residuals(:,j)-Rmean{i}(:,j)),'omitnan');
+        Rnmad{i}(:,j) = 1.4826*median(abs(Residuals(:,j)-Rmean{i}(:,j)),'omitnan');
         Rrmse{i}(:,j) = sqrt(nansum((Residuals(:,j)).^2)./length(Residuals(:,j))); %calculate rmse of  Residuals
         
 
