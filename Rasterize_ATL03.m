@@ -1,13 +1,33 @@
+%%% This code callculates a 11m raster from ICESat-2 ATL03 points by taking
+%%% the minimum ATL03 point within each 11m cell. Geolocation information
+%%% comes from the the site reference DTM
+%%%
+%%% SPECIFIED INPUTS:
+%%%     folderpath = path to the site folder on your computer
+%%%     DTM_name = DTM file name
+%%%     abbrev = site abriviation for file name
+%%% OUTPUTS:
+%%%     IS2grid = 11m geotif raster
+%%% 
+%%% Last updated: Aug 2023 by Karina Zikan
 clear all
 
+%% Inputs
 %Folder path 
-folderpath = '/Users/karinazikan/Documents/GitHub/ICESat2-AlpineSnow/Sites/RCEW/';
+folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/';
 DTM_name = 'RCEW_1m_WGS84UTM11_WGS84.tif';
 %site abbreviation for file names
 abbrev = 'RCEW';
+
+%% Read in files
 %Read in files
 file = readtable([folderpath 'IS2_Data/' abbrev '-ICESat2-ATL03']);
 [DTM,Ref] = readgeoraster([folderpath 'DEMs/' DTM_name]);
+
+% crs check
+if Ref.ProjectedCRS.Name ~= 'WGS 84 / UTM zone 11N'
+    error('Error: DTM must be in WGS84 / UTM zone 11N')
+end
 
 %DEMgrid
 if isfield(Ref,'LatitudeLimits')
@@ -32,46 +52,17 @@ imagesc(x,y,DTM);
 hold on
 scatter3(file,"X","Y","Z",Marker=".");
 
-% %% Identify tracks that dont intersect
-% dates = datetime(file.time.Year,file.time.Month,file.time.Day);
-% dates_unique = unique(dates);
-% for i = 1:length(dates_unique)
-%     ix = find(dates == dates_unique(i));
-%     tracks{i} = file(ix,:);
-% end
-% % for i = 1:(length(tracks)-1)
-% %     for k = (i+1):length(tracks)
-% %         check{i,k} = polyxpoly(tracks{i}.X,tracks{i}.Y,tracks{k}.X,tracks{k}.Y,'unique');
-% %     end
-% % end
-% 
-% figure(2);
-% hold on
-% for i = 1:length(tracks)
-% scatter3(tracks{i},"X","Y","time",Marker=".");
-% end
-% legend(datestr(dates_unique),'FontSize',12)
-% 
-% %% Remove tracks that dont intersect
-% ix = find(dates ~= '2019-08-26');
-% file2 = file(ix,:);
-% 
-% figure(3);
-% scatter3(file2,"X","Y","Z",Marker=".");
-% 
-% %% Write new point cloud
-% writetable(file2,[folderpath 'IS2_Data/' abbrev '-ICESat2-ATL03-2.csv']);
-
 %% Make 11m elevation array
 x11 = downsample(x,11); y11 = downsample(y,11);
 
 for i = 1:length(x11)
     for j = 1:length(y11)
-        ix = find(file.X <= (x11(i)+ 5.5 & file.X >= (x11(i)-5.5) & file.Y <= (y11(i)+ 5.5 & file.Y >= (y11(i)-5.5)))); 
+        ix = find(file.X <= (x11(i)+ 5.5 & file.X >= (x11(i)-5.5) & ...
+            file.Y <= (y11(i)+ 5.5 & file.Y >= (y11(i)-5.5)))); % Identify ATL03 points w/in cell
         if isempty(ix) == 1
-            IS2grid(j,i) = NaN;
+            IS2grid(j,i) = NaN; %Set elevation to NaN for empty cells
         else
-            IS2grid(j,i) = min(file.Z(ix));
+            IS2grid(j,i) = min(file.Z(ix)); %Set elevation to min ATL03
         end
     end
 end

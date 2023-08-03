@@ -199,7 +199,7 @@ end
 
 %Write reference elevation table
 E = table(elevation_report_nw_mean,elevation_report_mean,elevation_report_fitted,elevation_report_std,slope_mean,slope_std,aspect_mean,aspect_std);
-writetable(E,[abbrev,'-ICESat2-',acronym,'-ref-elevations.csv']);
+writetable(E,[abbrev,'-ICESat2-',acronym,'-ref-elevations-CoReg.csv']);
 
 
 %% Sanity Checks
