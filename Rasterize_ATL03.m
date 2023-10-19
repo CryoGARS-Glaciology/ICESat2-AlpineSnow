@@ -30,51 +30,32 @@ DTM(DTM>(2.5*10^3)) = NaN;
 figure(1);
 imagesc(x,y,DTM);
 hold on
-scatter3(file,"X","Y","Z",Marker=".");
+scatter3(file.X,file.Y,file.Z,Marker=".");
 
-% %% Identify tracks that dont intersect
-% dates = datetime(file.time.Year,file.time.Month,file.time.Day);
-% dates_unique = unique(dates);
-% for i = 1:length(dates_unique)
-%     ix = find(dates == dates_unique(i));
-%     tracks{i} = file(ix,:);
-% end
-% % for i = 1:(length(tracks)-1)
-% %     for k = (i+1):length(tracks)
-% %         check{i,k} = polyxpoly(tracks{i}.X,tracks{i}.Y,tracks{k}.X,tracks{k}.Y,'unique');
-% %     end
-% % end
-% 
-% figure(2);
-% hold on
-% for i = 1:length(tracks)
-% scatter3(tracks{i},"X","Y","time",Marker=".");
-% end
-% legend(datestr(dates_unique),'FontSize',12)
-% 
-% %% Remove tracks that dont intersect
-% ix = find(dates ~= '2019-08-26');
-% file2 = file(ix,:);
-% 
-% figure(3);
-% scatter3(file2,"X","Y","Z",Marker=".");
-% 
-% %% Write new point cloud
-% writetable(file2,[folderpath 'IS2_Data/' abbrev '-ICESat2-ATL03-2.csv']);
-
-%% Make 11m elevation array
+%% Make 11m ATL03 elevation array
 x11 = downsample(x,11); y11 = downsample(y,11);
 
 for i = 1:length(x11)
     for j = 1:length(y11)
-        ix = find(file.X <= (x11(i)+ 5.5 & file.X >= (x11(i)-5.5) & file.Y <= (y11(i)+ 5.5 & file.Y >= (y11(i)-5.5)))); 
+        ix = find(file.X <= (x11(i)+ 5.5) & file.X >= (x11(i)-5.5) & file.Y <= (y11(j)+ 5.5) & file.Y >= (y11(j)- 5.5));
+        check(j,i) = sum(ix);
         if isempty(ix) == 1
             IS2grid(j,i) = NaN;
         else
-            IS2grid(j,i) = min(file.Z(ix));
+            IS2grid(j,i) = nanmean(file.Z(ix));
         end
     end
 end
+
+%% Make 11m ref elevation array
+for i = 1:length(x11)
+    for j = 1:length(y11)
+        ix = find(x <= (x11(i)+5.5) & x >= (x11(i)-5.5));
+        iy = find(y <= (y11(j)+5.5) & y >= (y11(j)-5.5));
+        DTM_11(j,i) = nanmean(DTM(iy,ix),'all');
+    end
+end
+DTM_11 = double(DTM_11);
 
 %% Create the referencing matrix (R)
 R = maprasterref('RasterSize',size(IS2grid), ...
@@ -82,6 +63,22 @@ R = maprasterref('RasterSize',size(IS2grid), ...
 R.ProjectedCRS  = Ref.ProjectedCRS; 
 R.ColumnsStartFrom = 'north';
 
-%% Export raster
-filename = [folderpath 'DEMs/' abbrev '-ICESat2-ATL03.tif'];
+%% Export ATL03 raster
+filename = [folderpath 'DEMs/' abbrev '-ICESat2-ATL03-test.tif'];
 geotiffwrite(filename,IS2grid,R,'CoordRefSysCode','epsg:32611')
+
+%% Export 11m DTM raster
+filename = [folderpath 'DEMs/RCEW_1m_WGS84UTM11_WGS84_11m.tif'];
+geotiffwrite(filename,DTM_11,R,'CoordRefSysCode','epsg:32611')
+
+%% Save IS2grid as csv just in case
+writematrix(IS2grid,"RCEW_ATL03_grid_mean.csv");
+
+%% Save DTM_11 as csv just in case
+writematrix(DTM_11,"DTM_11.csv");
+%%
+for i = 1:length(ix)
+    for j = 1:length(ix)
+        check(i,j) = sum(ix{i,j});
+    end 
+end
