@@ -24,7 +24,9 @@ abbrev = 'RCEW';
 %Set snowcover to 'snowonn' or 'snowoff'
 snowcover = 'snowoff';
 %Turn slope correction off or on
-slope_correction = 0; % 0 = off, 1 = on
+slope_correction = 1; % 0 = off, 1 = on
+%Set slope filtering off or on 
+filter_slopes = 0; % 0 = off, 1 = on
 
 %% Set file paths and colormaps
 %File paths
@@ -35,7 +37,7 @@ icesat2_atl06 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr'];
 ref_elevations_atl06 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-params'];
 
 icesat2_atl06_class = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-atl08class'];
-ref_elevations_atl06_class = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-atl08class-params'];
+ref_elevations_atl06_class = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-atl08class-ref-elevations-CoReg'];
 
 %set colors
 colors{1} = cmocean('-dense',6);
@@ -110,7 +112,7 @@ for i = 1:N_Products
         acronym = 'ATL08';
 
         % ICESat-2 data
-        zmod = T.Elevation_bestfit(:); % save the fitted 'model' elevations (icesat-2 elevations)
+        % zmod = T.Elevation_bestfit(:); % save the fitted 'model' elevations (icesat-2 elevations)
         zmod = T.Elevation(:); % save the 'model' elevations (icesat-2 elevations)
         zstd = T.std; %save the standard deviation of the icesat-2 elevation estimates
         easts = T.Easting(:); % pull out the easting values
@@ -147,19 +149,25 @@ for i = 1:N_Products
     % Ref elev data
     elevation_report(:,1) = E.elevation_report_nw_mean;  %non-weighted mean ref elevation
     elevation_report(:,2) = E.elevation_report_mean;    %weighted mean ref elevation
-    elevation_report(:,3) = E.elevation_report_fitted;    %weighted & fitted ref elevation
+    %elevation_report(:,3) = E.elevation_report_fitted;    %weighted & fitted ref elevation
     elevation_report_std = E.elevation_report_std;  %std of elevations within footprint
 
     %% Stats
     %calculate the elevation residuals
-    for j = 1:3
+    for j = 1:2
         differences = zmod - elevation_report(:,j); %calculate the icesat2 elevations and the calculated reference elevations
         differences(differences > 80) = NaN; differences(differences < -80) = NaN; %remove extreme outliers
+        if filter_slopes == 1
+            differences(slope >= 20) = NaN; %remove slopes above 30 degrees
+            disp('Slopes above 20 degress filtered out')
+        end
+
         Dmean{i}(:,j) = nanmean(differences); % calculate mean of diferences
         Dstd{i}(:,j) = std(differences,'omitnan'); % calculate std of diferences
         Dmed{i}(:,j) = median(differences,'omitnan');
         Dmad{i}(:,j) = median(abs(differences-Dmean{i}(:,j)),'omitnan');
-        zrmse{i}(:,j) = sqrt(nansum((differences).^2)./length(differences)); %calculate rmse of  differeces
+        Dnmad{i}(:,j) = 1.4826*median(abs(differences-Dmean{i}(:,j)),'omitnan');
+        Drmse{i}(:,j) = sqrt(nansum((differences).^2)./length(differences)); %calculate rmse of  differeces
 
         %        Dks_test(i,:) = kstest(differences); %kolmagorov smirnof test
 
@@ -172,6 +180,7 @@ for i = 1:N_Products
         if slope_correction == 0
             % Vertical corregistration
             Residuals(:,j) = differences-Dmed{i}(:,j); 
+            disp('No slope correction')
         elseif slope_correction == 1
             Residuals = differences-Dmed{i}(:,j);
             %calculate quadratic slope correction
@@ -181,6 +190,7 @@ for i = 1:N_Products
             p = polyfit(x,y,2); % fit quadratic
             % Vertical corregistration
             Residuals(:,j) = differences-Dmed{i}(:,j)-polyval(p,slope);
+            ('Slope correction applied')
         else
             error('slope_correction must be set to 0 (no slope correction) or 1 (slope correction applied)')
         end
@@ -192,6 +202,7 @@ for i = 1:N_Products
         Rstd{i}(:,j) = std(Residuals(:,j),'omitnan'); % calculate std of Residuals
         Rmed{i}(:,j) = median(Residuals(:,j),'omitnan');
         Rmad{i}(:,j) = median(abs(Residuals(:,j)-Rmean{i}(:,j)),'omitnan');
+        Rnmad{i}(:,j) = 1.4826*median(abs(Residuals(:,j)-Rmean{i}(:,j)),'omitnan');
         Rrmse{i}(:,j) = sqrt(nansum((Residuals(:,j)).^2)./length(Residuals(:,j))); %calculate rmse of  Residuals
         
 
@@ -201,16 +212,16 @@ for i = 1:N_Products
     
     %% Plots
     % Reference historgrams
-    fig2 = figure(2);
-    subplot(N_Products,1,i); set(gcf,'position',[50 50 800 500]); clear h;
-    binwidth = 0.2;
-    h(1) = histogram(Residuals(:,1),'Normalization','pdf'); h(1).BinWidth = binwidth; h(1).FaceAlpha = 1; h(1).FaceColor = colors{i}(1,:);  h(1).EdgeColor = 'k'; hold on;
-    h(2) = histogram(Residuals(:,2),'Normalization','pdf'); h(2).BinWidth = binwidth; h(2).FaceAlpha = 0.75; h(2).FaceColor = colors{i}(2,:); h(2).EdgeColor = 'k';
-    h(3) = histogram(Residuals(:,3),'Normalization','pdf'); h(3).BinWidth = binwidth; h(3).FaceAlpha = 0.75;  h(3).FaceColor = colors{i}(3,:); h(3).EdgeColor = 'w';
-    plot([0,0],[0,.8], 'linewidth', 2, 'Color','k') % plot reference 0 line
-    set(gca,'fontsize',16,'xlim',[-4 2]);
-    legend(h,['DEM: Non-weighted mean, std = ' num2str(Dstd{i}(:,1))],['DEM: Weighted mean, std = ' num2str(Dstd{i}(:,2))],['DEM: Weighted and fitted, std = ' num2str(Dstd{i}(:,3))],'Location','northwest');
-    xlabel('Vertical offset (m)'); ylabel('Probability density'); title(acronym);
+    % fig2 = figure(2);
+    % subplot(N_Products,1,i); set(gcf,'position',[50 50 800 500]); clear h;
+    % binwidth = 0.2;
+    % h(1) = histogram(Residuals(:,1),'Normalization','pdf'); h(1).BinWidth = binwidth; h(1).FaceAlpha = 1; h(1).FaceColor = colors{i}(1,:);  h(1).EdgeColor = 'k'; hold on;
+    % h(2) = histogram(Residuals(:,2),'Normalization','pdf'); h(2).BinWidth = binwidth; h(2).FaceAlpha = 0.75; h(2).FaceColor = colors{i}(2,:); h(2).EdgeColor = 'k';
+    % h(3) = histogram(Residuals(:,3),'Normalization','pdf'); h(3).BinWidth = binwidth; h(3).FaceAlpha = 0.75;  h(3).FaceColor = colors{i}(3,:); h(3).EdgeColor = 'w';
+    % plot([0,0],[0,.8], 'linewidth', 2, 'Color','k') % plot reference 0 line
+    % set(gca,'fontsize',16,'xlim',[-4 2]);
+    % legend(h,['DEM: Non-weighted mean, std = ' num2str(Dstd{i}(:,1))],['DEM: Weighted mean, std = ' num2str(Dstd{i}(:,2))],['DEM: Weighted and fitted, std = ' num2str(Dstd{i}(:,3))],'Location','northwest');
+    % xlabel('Vertical offset (m)'); ylabel('Probability density'); title(acronym);
 
     clear elevation_report Residuals
 end

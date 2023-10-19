@@ -15,10 +15,10 @@
 clear all; close all;
 addpath(['./functions']) 
 
-DEM_path = '/users/ellynenderlin/Research/NASA_CryoIdaho/glaciers/Wolverine/DEMs/';
+DEM_path = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/Banner/DEMs/';
 
 %specify the directory and UTM zone
-UTMzone = 6; EPSGcode = 32606;
+UTMzone = 11; EPSGcode = 32611;
 
 %% loop through the DEMs, calculating slope and aspect & resaving as geotiffs
 cd_to_DEM = ['cd ',DEM_path]; eval(cd_to_DEM);
