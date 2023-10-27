@@ -65,7 +65,7 @@ for i = 1:length(x11)
             IS2grid(j,i) = NaN; %Set elevation to NaN for empty cells
         else
 
-            #IS2grid(j,i) = nanmean(file.Z(ix));
+            %IS2grid(j,i) = nanmean(file.Z(ix));
             IS2grid(j,i) = min(file.Z(ix)); %Set elevation to min ATL03
 
         end
