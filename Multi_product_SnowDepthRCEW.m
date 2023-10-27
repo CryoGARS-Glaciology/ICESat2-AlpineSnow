@@ -25,8 +25,10 @@ abbrev = 'RCEW';
 DTM_name = [folderpath 'DEMs/RCEW_1m_WGS84UTM11_WGS84.tif'];
 
 %Turn slope correction off or on
-slope_correction = 1; % 0 = off, 1 = on
+slope_correction = 0; % 0 = off, 1 = on
 
+%Turn aspect correction off or on
+aspect_correction = 0; % 0 = off, 1 = on
 %%
 %File paths
 icesat2_atl08 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL08-params'];
@@ -77,6 +79,19 @@ y = y./(10^3);% to km
 %y = flip(y);
 DTM(DTM<0) = NaN;
 
+%% filter out unrealistic data
+% % atl08
+% E_08(E_08.aspect_mean < 0,:) = num2cell(NaN(size(E_08(E_08.aspect_mean < 0,:))));
+% E_08(E_08.aspect_mean > 360,:) = num2cell(NaN(size(E_08(E_08.aspect_mean > 360,:))));
+% 
+% % atl06
+% E_06(E_06.aspect_mean < 0,:) = num2cell(NaN(size(E_06(E_06.aspect_mean < 0,:))));
+% E_06(E_06.aspect_mean > 360,:) = num2cell(NaN(size(E_06(E_06.aspect_mean > 360,:))));
+% 
+% % atl06_class
+% E_06class(E_06class.aspect_mean < 0,:) = num2cell(NaN(size(E_06class(E_06class.aspect_mean < 0,:))));
+% E_06class(E_06class.aspect_mean > 360,:) = num2cell(NaN(size(E_06class(E_06class.aspect_mean > 360,:))));
+
 %% Make snow-on and snow-off arrays ({1} = ATL08, {2} = ATL06, {3} = ATL06 w/ ATL08 classification)
 
 %ATL08
@@ -109,12 +124,13 @@ for i = 1:3
     if i == 1
 %         Residuals_off{i} =  I_off{i}.Elevation_bestfit - E_off{i}.elevation_report_fitted;
 %        Residuals_on{i} =   I_on{i}.Elevation_bestfit - E_on{i}.elevation_report_fitted;
-        Residuals_off{i} =  I_off{i}.Elevation - E_off{i}.elevation_report_fitted;
-        Residuals_on{i} =   I_on{i}.Elevation - E_on{i}.elevation_report_fitted;
+        Residuals_off{i} =  I_off{i}.Elevation - E_off{i}.elevation_report_nw_mean;
+        Residuals_on{i} =   I_on{i}.Elevation - E_on{i}.elevation_report_nw_mean;
     else
         Residuals_off{i} =  I_off{i}.h_mean - E_off{i}.elevation_report_nw_mean;
         Residuals_on{i} =  I_on{i}.h_mean - E_on{i}.elevation_report_nw_mean;
     end
+    
     Residuals_off{i}(Residuals_off{i} > 80) = NaN; Residuals_off{i}(Residuals_off{i} < -80) = NaN; %remove extreme outliers
     Residuals_on{i}(Residuals_on{i} > 80) = NaN; Residuals_on{i}(Residuals_on{i} < -80) = NaN; %remove extreme outliers
     SnowDepth{i} = Residuals_on{i} - median(Residuals_off{i},'omitnan');
@@ -228,36 +244,17 @@ title('ATL06 with ATL08 photon classification');
 hold off
 
 %-------------------------------------------------------------------------
-%% Grouped data plots 
+%% Grouped data plot - elevations
 clear SnowDepthTable
 % ATL06 classified
 Residuals =  I_06class.h_mean - E_06class.elevation_report_nw_mean;
 Residuals(Residuals > 80) = NaN; Residuals(Residuals < -80) = NaN; %remove extreme outliers
-
-% % Vertical corregistration for all IS2 points
-if slope_correction == 0
-    % Vertical corregistration
-    SnowDepthAll = Residuals - median(Residuals_off{3},'omitnan');
-    SnowDepthAll(SnowDepthAll > 13) = NaN; SnowDepthAll(SnowDepthAll < -13) = NaN; %remove extreme outliers
-elseif slope_correction == 1
-    SnowDepthAll = Residuals - median(Residuals_off{3},'omitnan');
-    SnowDepthAll(SnowDepthAll > 13) = NaN; SnowDepthAll(SnowDepthAll < -13) = NaN; %remove extreme outliers
-    %calculate quadratic slope correction
-    x= E_06class.slope_mean; y = SnowDepthAll;
-    ind = isnan(x) | isnan(y); %index nans
-    x(ind) = []; y(ind) = []; %remove nans
-    p = polyfit(x,y,2); % fit quadratic
-    % Vertical corregistration
-    SnowDepthAll = SnowDepthAll-polyval(p,E_06class.slope_mean);
-else
-    error('slope_correction must be set to 0 (no slope correction) or 1 (slope correction applied)')
-end
+SnowDepthAll = Residuals - median(Residuals_off{3},'omitnan');
 
 E_06class.elevation_report_nw_mean(isnan(SnowDepthAll)) = NaN;
 
 % group elevation
-figure(4);
-subplot(3,1,1);
+figure(5);
 h = histogram(E_06class.elevation_report_nw_mean,30);
 elev_binwidth = h.BinWidth; elev_binedges = h.BinEdges;
 clear h;
@@ -267,7 +264,7 @@ end
 groupElev = discretize(E_06class.elevation_report_nw_mean, elev_binedges,'categorical',bins);
 
 % group aspect
-subplot(3,1,2);
+figure(5);
 h = histogram(E_06class.aspect_mean,30);
 aspect_binwidth = h.BinWidth; aspect_binedges = h.BinEdges;
 clear h;
@@ -277,7 +274,7 @@ end
 groupAspect = discretize(E_06class.aspect_mean, aspect_binedges,'categorical',bins);
 
 % group slope
-subplot(3,1,3);
+figure(5);
 h = histogram(E_06class.slope_mean,30);
 slope_binwidth = h.BinWidth; slope_binedges = h.BinEdges;
 clear h;
@@ -347,7 +344,7 @@ fig4 = figure(4); clf
 datenum = convertTo(dates,'yyyymmdd');
 imagesc(elev_binedges([2:length(elev_binedges)]),datenum,SnowDepthMedArray_elev,[-3 3])
 cmap = cmocean('-balance'); cmap = [ 0 0 0 ; cmap ];
-colormap(cmap); c = colorbar; c.Label.String = 'Median Residual (m)';
+colormap(cmap); c = colorbar;
 set(gca,'fontsize',16);
 xlabel('Elevation (m)')
 a=(max(datenum)-min(datenum))/(length(datenum)-1);
@@ -358,7 +355,7 @@ yticklabels(string(dates,'MM-yyyy'))
 fig5 = figure(5); clf
 imagesc(aspect_binedges([2:length(aspect_binedges)]),datenum,SnowDepthMedArray_aspect,[-3 3])
 cmap = cmocean('-balance'); cmap = [ 0 0 0 ; cmap ];
-colormap(cmap); c = colorbar; c.Label.String = 'Median Residual (m)';
+colormap(cmap); c = colorbar;
 set(gca,'fontsize',16);
 xlabel('Aspect (degrees)')
 a=(max(datenum)-min(datenum))/(length(datenum)-1);
@@ -369,7 +366,7 @@ yticklabels(string(dates,'MM-yyyy'))
 fig6 = figure(6); clf
 imagesc(slope_binedges([2:length(slope_binedges)]),datenum,SnowDepthMedArray_slope,[-3 3])
 cmap = cmocean('-balance'); cmap = [ 0 0 0 ; cmap ];
-colormap(cmap); c = colorbar; c.Label.String = 'Median Residual (m)';
+colormap(cmap); c = colorbar;
 set(gca,'fontsize',16);
 xlabel('Slope (degrees)')
 a=(max(datenum)-min(datenum))/(length(datenum)-1);

@@ -14,10 +14,10 @@ clear all
 
 %% Inputs
 %Folder path 
-folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/';
-DTM_name = 'RCEW_1m_WGS84UTM11_WGS84.tif';
+folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/Banner/';
+DTM_name = 'Banner_Bare_Earth_DEMs_mosaic_UTM11WGS84.tif';
 %site abbreviation for file names
-abbrev = 'RCEW';
+abbrev = 'Banner';
 
 %% Read in files
 %Read in files

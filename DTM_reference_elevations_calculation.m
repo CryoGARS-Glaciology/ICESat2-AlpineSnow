@@ -29,14 +29,14 @@ addpath(['./functions'])
 
 %DTM (be sure the path ends in a /)
 DTM_path = 'Sites/RCEW/DEMs/';
-DTM_name = 'RCEW_1m_WGS84UTM11_WGS84.tif';
+DTM_name = 'RCEW_1m_WGS84UTM11_WGS84_11m_CoReg.tif';
 if contains(DTM_name,'.tif')
     DTM_date = '20120826'; %only need to change this if the DTM is a geotiff
 end
 % Slope
-DTM_slope = 'RCEW_1m_WGS84UTM11_WGS84-slope.tif';
+DTM_slope = 'RCEW_1m_WGS84UTM11_WGS84-slope_11m_CoReg.tif';
 % Aspect
-DTM_aspect = 'RCEW_1m_WGS84UTM11_WGS84-aspect.tif';
+DTM_aspect = 'RCEW_1m_WGS84UTM11_WGS84-aspect_11m_CoReg.tif';
 
 
 %csv (be sure the path ends in a /)
@@ -91,7 +91,7 @@ T = table; %create a table
 icesat2 = [csv_path abbrev '-ICESat2-ATL08-params']; %compile the file name
 file = readtable(icesat2); %read in files
 T = [T; file];
-T = T(1:5,:); % ONLY FOR TESTING!!!!!!!!!!
+%T = T(1:5,:); % ONLY FOR TESTING!!!!!!!!!!
 
 % T = T([1:250],:);
 zmod = T.Elevation(:); % save the median 'model' elevations (icesat-2 elevations)
@@ -205,7 +205,7 @@ toc
 %Write reference elevation table
 % E = table(elevation_report_nw_mean,elevation_report_mean,elevation_report_fitted,elevation_report_std,slope_mean,slope_std,aspect_mean,aspect_std);
 E = table(elevation_report_nw_mean,elevation_report_mean,elevation_report_std,slope_mean,slope_std,aspect_mean,aspect_std);
-writetable(E,[abbrev,'-ICESat2-',acronym,'-ref-elevations.csv']);
+writetable(E,[abbrev,'-ICESat2-',acronym,'-ref-elevations-CoReg.csv']);
 
 
 %% Sanity Checks

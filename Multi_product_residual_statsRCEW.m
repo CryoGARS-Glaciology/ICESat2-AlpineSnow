@@ -24,7 +24,7 @@ abbrev = 'RCEW';
 %Set snowcover to 'snowonn' or 'snowoff'
 snowcover = 'snowoff';
 %Turn slope correction off or on
-slope_correction = 1; % 0 = off, 1 = on
+slope_correction = 0; % 0 = off, 1 = on
 %Set slope filtering off or on 
 filter_slopes = 0; % 0 = off, 1 = on
 
@@ -34,10 +34,10 @@ icesat2_atl08 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL08-params'];
 ref_elevations_atl08 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL08-ref-elevations'];
 
 icesat2_atl06 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr'];
-ref_elevations_atl06 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-params'];
+ref_elevations_atl06 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-ref-elevations'];
 
 icesat2_atl06_class = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-atl08class'];
-ref_elevations_atl06_class = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-atl08class-ref-elevations-CoReg'];
+ref_elevations_atl06_class = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-atl08class-ref-elevations'];
 
 %set colors
 colors{1} = cmocean('-dense',6);
@@ -56,6 +56,19 @@ I_06 = readtable(icesat2_atl06);
 I_06_class = readtable(icesat2_atl06_class);
 
 footwidth = 11; % approx. width of icesat2 shot footprint in meters
+
+%% filter out unrealistic data
+% % atl08
+% E_08(E_08.aspect_mean < 0,:) = num2cell(NaN(size(E_08(E_08.aspect_mean < 0,:))));
+% E_08(E_08.aspect_mean > 360,:) = num2cell(NaN(size(E_08(E_08.aspect_mean > 360,:))));
+% 
+% % atl06
+% E_06(E_06.aspect_mean < 0,:) = num2cell(NaN(size(E_06(E_06.aspect_mean < 0,:))));
+% E_06(E_06.aspect_mean > 360,:) = num2cell(NaN(size(E_06(E_06.aspect_mean > 360,:))));
+% 
+% % atl06_class
+% E_06_class(E_06_class.aspect_mean < 0,:) = num2cell(NaN(size(E_06_class(E_06_class.aspect_mean < 0,:))));
+% E_06_class(E_06_class.aspect_mean > 360,:) = num2cell(NaN(size(E_06_class(E_06_class.aspect_mean > 360,:))));
 
 %% Filter snow-on or snow-off for ATL08
 % % % % % bright = I_08.Brightness_Flag;
@@ -117,8 +130,8 @@ for i = 1:N_Products
         zstd = T.std; %save the standard deviation of the icesat-2 elevation estimates
         easts = T.Easting(:); % pull out the easting values
         norths = T.Northing(:); % pull out the northings
-        slope = T.slope(:);
-        aspect = T.aspect(:);
+        % slope = E.slope_mean(:);
+        % aspect = E.aspect_mean(:);
         %canopy = T.Canopy(:);
     elseif i == 2
          T = I_06;
@@ -130,8 +143,8 @@ for i = 1:N_Products
         zstd = T.h_sigma; %save the standard deviation of the icesat-2 elevation estimates
         easts = T.Easting(:); % pull out the easting values
         norths = T.Northing(:); % pull out the northings
-        slope = E.slope_mean(:);
-        aspect = E.aspect_mean(:);
+        % slope = E.slope_mean(:);
+        % aspect = E.aspect_mean(:);
 %        canopy = T.Canopy(:);
     else
         T = I_06_class;
@@ -142,8 +155,8 @@ for i = 1:N_Products
         zstd = T.h_sigma; %save the standard deviation of the icesat-2 elevation estimates
         easts = T.Easting(:); % pull out the easting values
         norths = T.Northing(:); % pull out the northings
-        slope = E.slope_mean(:);
-        aspect = E.aspect_mean(:);
+        % slope = E.slope_mean(:);
+        % aspect = E.aspect_mean(:);
      %   canopy = T.Canopy(:);
     end
     % Ref elev data
@@ -214,7 +227,7 @@ for i = 1:N_Products
     % Reference historgrams
     % fig2 = figure(2);
     % subplot(N_Products,1,i); set(gcf,'position',[50 50 800 500]); clear h;
-    % binwidth = 0.2;
+     binwidth = 0.2;
     % h(1) = histogram(Residuals(:,1),'Normalization','pdf'); h(1).BinWidth = binwidth; h(1).FaceAlpha = 1; h(1).FaceColor = colors{i}(1,:);  h(1).EdgeColor = 'k'; hold on;
     % h(2) = histogram(Residuals(:,2),'Normalization','pdf'); h(2).BinWidth = binwidth; h(2).FaceAlpha = 0.75; h(2).FaceColor = colors{i}(2,:); h(2).EdgeColor = 'k';
     % h(3) = histogram(Residuals(:,3),'Normalization','pdf'); h(3).BinWidth = binwidth; h(3).FaceAlpha = 0.75;  h(3).FaceColor = colors{i}(3,:); h(3).EdgeColor = 'w';
@@ -378,7 +391,7 @@ whiskerline = '-'; outliermarker = 'o';
 % %text(1,max(ylims)-0.05*range(ylims),'a)','fontsize',16);
 
 % boxplot figure seperate products
-fig10 = figure(10); clf
+fig10 = figure(11); clf
 %ELEVATION
 bins = {num2str(elev_binedges(2))};
 for i= 3:length(elev_binedges)
