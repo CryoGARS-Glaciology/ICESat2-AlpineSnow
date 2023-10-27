@@ -25,11 +25,13 @@
 
 %% Inputs
 clearvars; close all;
-addpath(['./functions']) 
+addpath('./functions') 
 
 %DTM (be sure the path ends in a /)
 DTM_path = 'Sites/RCEW/DEMs/';
+
 DTM_name = 'RCEW_1m_WGS84UTM11_WGS84_11m_CoReg.tif';
+
 if contains(DTM_name,'.tif')
     DTM_date = '20120826'; %only need to change this if the DTM is a geotiff
 end
@@ -39,8 +41,10 @@ DTM_slope = 'RCEW_1m_WGS84UTM11_WGS84-slope_11m_CoReg.tif';
 DTM_aspect = 'RCEW_1m_WGS84UTM11_WGS84-aspect_11m_CoReg.tif';
 
 
+
 %csv (be sure the path ends in a /)
-csv_path = ['/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/IS2_Data/'];
+csv_path = '/Users/karinazikan/Documents/GitHub/ICESat2-AlpineSnow/Sites/RCEW/IS2_Data/';
+csv_name = 'RCEW-ICESat2-ATL08-params.csv';
 
 %site abbreviation for file names
 abbrev = 'RCEW';
@@ -54,6 +58,9 @@ elseif acronym == 'ATL06'
 else
     error('acronym must be ATL06 or ATL08')
 end 
+
+%Set output name
+outputname = [abbrev,'-ICESat2-',acronym,'-ref-elevations-mean-CoReg.csv'];
 
 %% Read in files
 %days of year
@@ -205,7 +212,8 @@ toc
 %Write reference elevation table
 % E = table(elevation_report_nw_mean,elevation_report_mean,elevation_report_fitted,elevation_report_std,slope_mean,slope_std,aspect_mean,aspect_std);
 E = table(elevation_report_nw_mean,elevation_report_mean,elevation_report_std,slope_mean,slope_std,aspect_mean,aspect_std);
-writetable(E,[abbrev,'-ICESat2-',acronym,'-ref-elevations-CoReg.csv']);
+writetable(E,outputname);
+
 
 
 %% Sanity Checks

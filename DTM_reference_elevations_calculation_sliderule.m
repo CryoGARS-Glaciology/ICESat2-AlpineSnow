@@ -20,7 +20,7 @@
 %%%         mean slope, std slope, mean aspect, std aspect
 %%%
 %%%
-%%% Last updated: Jan 2023 by Karina Zikan
+%%% Last updated: Sep 2023 by Karina Zikan
 
 
 %% Inputs
@@ -30,6 +30,7 @@ addpath(['./functions'])
 %DTM (be sure the path ends in a /)
 DTM_path = 'Sites/RCEW/DEMs/';
 DTM_name = 'RCEW_1m_WGS84UTM11_WGS84_CoReg.tif';
+
 if contains(DTM_name,'.tif')
     DTM_date = '20120826'; %only need to change this if the DTM is a geotiff
 end
@@ -41,6 +42,7 @@ DTM_aspect = 'RCEW_1m_WGS84UTM11_WGS84-aspect_CoReg.tif';
 
 %csv (be sure the path ends in a /)
 csv_path = ['/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/IS2_Data/'];
+
 csv_name = 'RCEW-ICESat2-ATL06sr-atl08class.csv';
 
 %site abbreviation for file names
@@ -55,6 +57,9 @@ elseif acronym == 'ATL06'
 else
     error('acronym must be ATL06 or ATL08')
 end 
+
+%Set output name
+outputname = [abbrev,'-ICESat2-',acronym,'sr-atl08class-ref-elevations-mean-CoReg.csv'];
 
 %% Read in Files
 
@@ -132,7 +137,8 @@ end
 
 %% Calculate Reference Elevations, Slope, & Aspect
 tic
-for r=1:length(zmod)  
+for r=1:length(zmod)
+
     %identify the R2erence elevation points in each ICESat2 footprint
     xv = xc(r,[3:6 3]); % bounding box x vector
     yv = yc(r,[3:6 3]); % bounding box y vector
@@ -146,19 +152,66 @@ for r=1:length(zmod)
     subslope = slope(iy,ix);
     subaspect = aspect(iy,ix);
 
-    %data in the footprint
+
+   %data in the footprint
     in = inpolygon(xsubgrid, ysubgrid, xv, yv); % get logical array of in values
     pointsinx = xsubgrid(in); % save x locations
     pointsiny = ysubgrid(in); % save y locations
     elevationsin = subelevations(in); % save elevations
     slopesin = subslope(in); % save slopes
     aspectsin = subaspect(in); % save slopes
-    
-    %wieghted average
-    dist = nan([1,length(pointsinx)])'; %initialize dist
-    for a = 1:length(pointsinx)
-        phi = atan2d((pointsiny(a)-norths(r)),(pointsinx(a)-easts(r)));
-        dist(a)=abs(sqrt((pointsiny(a)-norths(r))^2+(pointsinx(a)-easts(r))^2)*sind(phi-theta(r))); %distance from the line in the center of the window  
+
+    if sum(isnan(elevationsin))==0
+        %wieghted average
+        dist = nan([1,length(pointsinx)])'; %initialize dist
+        for a = 1:length(pointsinx)
+            phi = atan2d((pointsiny(a)-norths(r)),(pointsinx(a)-easts(r)));
+            dist(a)=abs(sqrt((pointsiny(a)-norths(r))^2+(pointsinx(a)-easts(r))^2)*sind(phi-theta(r))); %distance from the line in the center of the window
+        end
+        maxdist = footwidth/2; % defining the maximum distance a point can be from the center icesat2 point
+        w = 15/16*(1-(dist/maxdist).^2).^2; %bisqared kernel
+        elevation_report_mean(r,:) = sum(w.*elevationsin)./sum(w); %weighted elevation estimate
+        elevation_report_std(r,:) = std(elevationsin); %std of the elevations within the footprint
+
+        %non wieghted average
+        elevation_report_nw_mean(r,:) = nanmean(elevationsin); % non-wieghted elevations
+        slope_mean(r,:) = nanmean(slopesin);
+        slope_std(r,:) = std(slopesin);
+        aspect_mean(r,:) = nanmean(aspectsin);
+        aspect_std(r,:) = std(aspectsin);
+
+    %     %weighted fit
+    %     warning('off')
+    %     p{1} = fit([pointsinx, pointsiny],elevationsin,'poly11','Weights',w); %fit linear polynomial
+    %     p{2} = fit([pointsinx, pointsiny],elevationsin,'poly33','Weights',w); %fit cubic polynomial
+    %     p{3} = fit([pointsinx, pointsiny],elevationsin,'poly44','Weights',w); %fit quadratic polynomial
+    %     warning('on')
+    %     for n=1:length(p) %loop through the degrees in d
+    %         Em(n) = p{n}(easts(r),norths(r)); % Evaluate the fitted polynomial
+    %         fitted = p{n}(pointsinx, pointsiny); % model elevation at each DEM location
+    %         if n == 1 %calculatating corected linear midpoint elevation
+    %             SlopeCorectedHight = fitted-elevationsin+Em(n);
+    %             DistAlongWeight = 1/sqrt((pointsiny-norths(r)).^2+(pointsinx-easts(r)).^2-dist.^2);
+    %             Em(n) = sum(SlopeCorectedHight.*DistAlongWeight,'all')/sum(DistAlongWeight,'all');
+    %         end
+    %         %RMSE(n) = sqrt(mean((Em(:,n)-elevationsin).^2)); % Calculate RMSE of fitted polynomial p
+    %         fitstd(n) = std(fitted-elevationsin);
+    %         fitmean(n) = mean(fitted-elevationsin);
+    %     end
+    %     a = find(fitstd==min(fitstd));
+    %     if length(a) ~= 1
+    %         fitmean = fitmean(a);
+    %         a = find(fitmean==min(fitmean));
+    %     end
+    %     if length(a) ~= 1
+    %         a = find(a==max(a));
+    %     end
+    %     order(r) = a;
+    %     elevation_report_fitted(r,:) = Em(a);
+    % else
+    %     order(r) = NaN;
+    %     elevation_report_fitted(r,:) = NaN;
+
     end
     maxdist = footwidth/2; % defining the maximum distance a point can be from the center icesat2 point
     w = 15/16*(1-(dist/maxdist).^2).^2; %bisqared kernel
@@ -204,9 +257,8 @@ end
 toc
 
 %Write reference elevation table
-% E = table(elevation_report_nw_mean,elevation_report_mean,elevation_report_fitted,elevation_report_std,slope_mean,slope_std,aspect_mean,aspect_std);
 E = table(elevation_report_nw_mean,elevation_report_mean,elevation_report_std,slope_mean,slope_std,aspect_mean,aspect_std);
-writetable(E,[abbrev,'-ICESat2-',acronym,'-ref-elevations-CoReg.csv']);
+writetable(E,outputname);
 
 
 %% Sanity Checks
