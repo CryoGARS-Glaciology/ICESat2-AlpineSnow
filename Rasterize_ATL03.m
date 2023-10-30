@@ -9,7 +9,7 @@
 %%% OUTPUTS:
 %%%     IS2grid = 11m geotif raster
 %%% 
-%%% Last updated: Aug 2023 by Karina Zikan
+%%% Last updated: Nov 2023 by Karina Zikan
 clear all
 
 %% Inputs
@@ -62,45 +62,52 @@ for i = 1:length(x11)
         ix = find(file.X <= (x11(i)+ 5.5) & file.X >= (x11(i)-5.5) & file.Y <= (y11(j)+ 5.5) & file.Y >= (y11(j)- 5.5));
         check(j,i) = sum(ix);
         if isempty(ix) == 1
-            IS2grid(j,i) = NaN; %Set elevation to NaN for empty cells
+            IS2grid_mean(j,i) = NaN; %Set elevation to NaN for empty cells
+            IS2grid_min(j,i) = NaN; %Set elevation to NaN for empty cells
         else
 
-            %IS2grid(j,i) = nanmean(file.Z(ix));
-            IS2grid(j,i) = min(file.Z(ix)); %Set elevation to min ATL03
+            IS2grid_mean(j,i) = nanmean(file.Z(ix)); %Set elevation to mean ATL03
+            IS2grid_min(j,i) = min(file.Z(ix)); %Set elevation to min ATL03
 
         end
     end
 end
 
-%% Make 11m ref elevation array
-for i = 1:length(x11)
-    for j = 1:length(y11)
-        ix = find(x <= (x11(i)+5.5) & x >= (x11(i)-5.5));
-        iy = find(y <= (y11(j)+5.5) & y >= (y11(j)-5.5));
-        DTM_11(j,i) = nanmean(DTM(iy,ix),'all');
-    end
-end
-DTM_11 = double(DTM_11);
+% %% Make 11m ref elevation array
+% x11 = downsample(x,11); y11 = downsample(y,11);
+% 
+% for i = 1:length(x11)
+%     for j = 1:length(y11)
+%         ix = find(x <= (x11(i)+5.5) & x >= (x11(i)-5.5));
+%         iy = find(y <= (y11(j)+5.5) & y >= (y11(j)-5.5));
+%         DTM_11(j,i) = nanmean(DTM(iy,ix),'all');
+%     end
+% end
+% DTM_11 = double(DTM_11);
 
 %% Create the referencing matrix (R)
-R = maprasterref('RasterSize',size(IS2grid), ...
+R = maprasterref('RasterSize',size(IS2grid_min), ...
     'XLimWorld',[min(x11) max(x11)],'YLimWorld',[min(y11) max(y11)]);
 R.ProjectedCRS  = Ref.ProjectedCRS; 
 R.ColumnsStartFrom = 'north';
 
-%% Export ATL03 raster
-filename = [folderpath 'DEMs/' abbrev '-ICESat2-ATL03-test.tif'];
-geotiffwrite(filename,IS2grid,R,'CoordRefSysCode','epsg:32611')
+%% Export ATL03 rasters
+filename = [folderpath 'DEMs/' abbrev '-ICESat2-ATL03-min.tif'];
+geotiffwrite(filename,IS2grid_min,R,'CoordRefSysCode','epsg:32611')
 
-%% Export 11m DTM raster
-filename = [folderpath 'DEMs/RCEW_1m_WGS84UTM11_WGS84_11m.tif'];
-geotiffwrite(filename,DTM_11,R,'CoordRefSysCode','epsg:32611')
+filename = [folderpath 'DEMs/' abbrev '-ICESat2-ATL03-mean.tif'];
+geotiffwrite(filename,IS2grid_mean,R,'CoordRefSysCode','epsg:32611')
+
+% %% Export 11m DTM raster
+% filename = [folderpath 'DEMs/RCEW_1m_WGS84UTM11_WGS84_11m.tif'];
+% geotiffwrite(filename,DTM_11,R,'CoordRefSysCode','epsg:32611')
 
 %% Save IS2grid as csv just in case
-writematrix(IS2grid,"RCEW_ATL03_grid_mean.csv");
+writematrix(IS2grid_min,"RCEW_ATL03_grid-min.csv");
+writematrix(IS2grid_mean,"RCEW_ATL03_grid-mean.csv");
 
-%% Save DTM_11 as csv just in case
-writematrix(DTM_11,"DTM_11.csv");
+% %% Save DTM_11 as csv just in case
+% writematrix(DTM_11,"DTM_11.csv");
 %%
 for i = 1:length(ix)
     for j = 1:length(ix)
