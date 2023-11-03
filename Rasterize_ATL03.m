@@ -14,10 +14,10 @@ clear all
 
 %% Inputs
 %Folder path 
-folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/Banner/';
-DTM_name = 'Banner_Bare_Earth_DEMs_mosaic_UTM11WGS84.tif';
+folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/MCS/';
+DTM_name = 'MCS_REFDEM_WGS84.tif';
 %site abbreviation for file names
-abbrev = 'Banner';
+abbrev = 'MCS';
 
 %% Read in files
 %Read in files
@@ -55,7 +55,8 @@ scatter3(file.X,file.Y,file.Z,Marker=".");
 
 %% Make 11m elevation array
 
-x11 = downsample(x,11); y11 = downsample(y,11);
+downsample_11m_value = 11/Ref.CellExtentInWorldX ; % calculate the value that will give 11m resolution for the ATL03 grid
+x11 = downsample(x,downsample_11m_value); y11 = downsample(y,downsample_11m_value);
 
 for i = 1:length(x11)
     for j = 1:length(y11)
