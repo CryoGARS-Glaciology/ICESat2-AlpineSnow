@@ -1,4 +1,17 @@
+%%% Make sitemap figure
+%%%
+%%% SPECIFIED INPUTS:
+%%%     site = path to watershed outline
+%%%     
+%%% OUTPUTS:
+%%%     
+%%%
+%%% Last updated: Nov 2023 by Karina Zikan
+
+%% Inputs
 site = readgeotable("/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/ROIs/RCEW-outline_WGS84.shp");
+
+%%
 states = readgeotable('usastatehi.shp');
 row = states.Name == "Idaho";
 state = states(row,:);

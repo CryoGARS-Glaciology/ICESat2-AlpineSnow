@@ -21,8 +21,9 @@ abbrev = 'MCS';
 
 %% Read in files
 %Read in files
-file = readtable([folderpath 'IS2_Data/' abbrev '-ICESat2-ATL03']);
-[DTM,Ref] = readgeoraster([folderpath 'DEMs/' DTM_name]);
+% file = readtable([folderpath 'IS2_Data/' abbrev '-ICESat2-ATL03']);
+%[DTM,Ref] = readgeoraster([folderpath 'DEMs/' DTM_name]);
+[DTM,Ref] = readgeoraster([folderpath DTM_name]);
 
 % crs check
 if Ref.ProjectedCRS.Name ~= 'WGS 84 / UTM zone 11N'
@@ -53,10 +54,11 @@ hold on
 scatter3(file.X,file.Y,file.Z,Marker=".");
 
 
-%% Make 11m elevation array
-
-downsample_11m_value = 11/Ref.CellExtentInWorldX ; % calculate the value that will give 11m resolution for the ATL03 grid
+%% Make 11m x and y coordinates
+downsample_11m_value = round(11/Ref.CellExtentInWorldX) ; % calculate the value that will give 11m resolution for the ATL03 grid
 x11 = downsample(x,downsample_11m_value); y11 = downsample(y,downsample_11m_value);
+
+%% Make 11m elevation array
 
 for i = 1:length(x11)
     for j = 1:length(y11)

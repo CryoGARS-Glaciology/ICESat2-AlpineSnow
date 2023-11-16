@@ -247,9 +247,27 @@ hold off
 %% Grouped data plot - elevations
 clear SnowDepthTable
 % ATL06 classified
-Residuals =  I_06class.h_mean - E_06class.elevation_report_nw_mean;
+Residuals =  I_06class.h_mean - E_06class.elevation_report_nw_mean - median(Residuals_off{3},'omitnan');
 Residuals(Residuals > 80) = NaN; Residuals(Residuals < -80) = NaN; %remove extreme outliers
-SnowDepthAll = Residuals - median(Residuals_off{3},'omitnan');
+ % Vertically corregister
+        if slope_correction == 0
+            % Vertical corregistration
+            disp('No slope correction')
+        elseif slope_correction == 1
+            %calculate quadratic slope correction
+            slope = E_06class.slope_mean(:);
+            x= slope; y = Residuals;
+            ind = isnan(x) | isnan(y); %index nans
+            x(ind) = []; y(ind) = []; %remove nans
+            p = polyfit(x,y,2); % fit quadratic
+            % Vertical corregistration
+            Residuals = Residuals-polyval(p,slope);
+            ('Slope correction applied')
+        else
+            error('slope_correction must be set to 0 (no slope correction) or 1 (slope correction applied)')
+        end
+SnowDepthAll = Residuals ;
+
 
 E_06class.elevation_report_nw_mean(isnan(SnowDepthAll)) = NaN;
 
@@ -403,7 +421,7 @@ yticklabels(string(dates,'MM-yyyy'))
 % set(gcf,'position',[50 50 800 400]);
 
 %% plot map + tracks
-fig7 = figure(7);
+fig7 = figure(7); clf
 imagesc(x,y,DTM) 
 daspect([1 1 1])
 colormap(cmocean('grey'))
