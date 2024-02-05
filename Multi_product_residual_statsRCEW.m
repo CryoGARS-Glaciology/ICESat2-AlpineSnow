@@ -33,11 +33,12 @@ filter_slopes = 0; % 0 = off, 1 = on
 icesat2_atl08 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL08-params'];
 ref_elevations_atl08 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL08-ref-elevations'];
 
-icesat2_atl06 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr'];
-ref_elevations_atl06 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-ref-elevations'];
+icesat2_atl06 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06-SnowCover'];
+ref_elevations_atl06 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-params'];
 
-icesat2_atl06_class = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-atl08class'];
-ref_elevations_atl06_class = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-atl08class-ref-elevations'];
+icesat2_atl06_class = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06-atl08class-SnowCover'];
+ref_elevations_atl06_class = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-atl08class-params'];
+
 
 %set colors
 colors{1} = cmocean('-dense',6);
@@ -70,10 +71,12 @@ footwidth = 11; % approx. width of icesat2 shot footprint in meters
 % E_06_class(E_06_class.aspect_mean < 0,:) = num2cell(NaN(size(E_06_class(E_06_class.aspect_mean < 0,:))));
 % E_06_class(E_06_class.aspect_mean > 360,:) = num2cell(NaN(size(E_06_class(E_06_class.aspect_mean > 360,:))));
 
-%% Filter snow-on or snow-off for ATL08
+%% Filter snow-on or snow-off
 % % % % % bright = I_08.Brightness_Flag;
 % % % % % dates_08 = datetime(I_08.date);
 
+
+% Filter snow-on or snow-off for ATl08
 % season (1=winter(Jan,Feb,Mar),2=spring(Apr,May,Jun),3=summer(Jul,Aug,Sep),4=fall(Oct,Nov,Dec))
 if snowcover == 'snowoff'
     ib = find(I_08.season == 3); 
@@ -90,10 +93,10 @@ E_08 = E_08(ib,:);
 % Filter snow-on or snow-off for ATl06
 dates_06 = datetime(I_06.time.Year,I_06.time.Month,I_06.time.Day);
 if snowcover == 'snowoff'
-    ib = find(I_06.time.Month >=6 & I_06.time.Month <= 9);
+    ib = find(I_06.snowcover == 0);
     disp('Snow off')
 elseif snowcover == 'snowonn'
-    ib = find(I_06.time.Month <=2 | I_06.time.Month >=12);
+    ib = find(I_06.snowcover == 1);
     disp('Snow on')
 else
     error('snowcover must be set to snowon or snowoff')
@@ -104,10 +107,10 @@ E_06 = E_06(ib,:);
 % Filter snow-on or snow-off for ATl06 atl08class
 dates_06_class = datetime(I_06_class.time.Year,I_06_class.time.Month,I_06_class.time.Day);
 if snowcover == 'snowoff'
-    ib = find(I_06_class.time.Month >=6 & I_06_class.time.Month <= 9);
+    ib = find(I_06_class.snowcover == 0);
     disp('Snow off')
 elseif snowcover == 'snowonn'
-    ib = find(I_06_class.time.Month <=2 | I_06_class.time.Month >=12);
+    ib = find(I_06_class.snowcover == 1);
     disp('Snow on')
 else
     error('snowcover must be set to snowonn or snowoff')
@@ -391,7 +394,7 @@ whiskerline = '-'; outliermarker = 'o';
 % %text(1,max(ylims)-0.05*range(ylims),'a)','fontsize',16);
 
 % boxplot figure seperate products
-fig10 = figure(11); clf
+fig10 = figure(10); clf
 %ELEVATION
 bins = {num2str(elev_binedges(2))};
 for i= 3:length(elev_binedges)
@@ -480,6 +483,50 @@ hold on
 groupSlope = discretize(E_06_class.slope_mean,slope_binedges,'categorical',bins);
 boxchart(groupSlope,ResidualsAll{3}(:,1),'BoxFaceColor',colors{3}(3,:),'MarkerStyle','none')
 ylim([-3,3])
+set(gca,'fontsize',16,'box','on'); drawnow;
+xlabel('Slope (degrees)','fontsize',16); 
+
+%%
+% boxplot figure seperate products
+fig2 = figure(2); clf
+%ELEVATION
+bins = {num2str(elev_binedges(2))};
+for i= 3:length(elev_binedges)
+    bins = [bins; {num2str(elev_binedges(i))}];
+end
+% ATL06-class
+subplot(3,1,1);
+hold on
+groupElev = discretize(E_06_class.elevation_report_mean,elev_binedges,'categorical',bins);
+boxchart(groupElev,ResidualsAll{3}(:,1),'BoxFaceColor',colors{1}(3,:),'MarkerStyle','none')
+ylim([-3,3])
+set(gca,'fontsize',16,'box','on'); drawnow;
+%title('ATL06 classified');
+xlabel('Elevation (m a.s.l.)','fontsize',16); 
+%ASPECT
+bins = {num2str(aspect_binedges(2))};
+for i= 3:length(aspect_binedges)
+    bins = [bins; {num2str(aspect_binedges(i))}];
+end
+% ATL06-class
+subplot(3,1,2);
+hold on
+groupAspect = discretize(E_06_class.aspect_mean,aspect_binedges,'categorical',bins);
+boxchart(groupAspect,ResidualsAll{3}(:,1),'BoxFaceColor',colors{2}(3,:),'MarkerStyle','none')
+ylim([-3,2])
+set(gca,'fontsize',16,'box','on'); drawnow;
+xlabel('Aspect (degrees)','fontsize',16); ylabel('Elevation residuals (m)','fontsize',16);
+%SLOPE
+bins = {num2str(slope_binedges(2))};
+for i= 3:length(slope_binedges)
+    bins = [bins; {num2str(slope_binedges(i))}];
+end
+% ATL06-class
+subplot(3,1,3);
+hold on
+groupSlope = discretize(E_06_class.slope_mean,slope_binedges,'categorical',bins);
+boxchart(groupSlope,ResidualsAll{3}(:,1),'BoxFaceColor',colors{3}(3,:),'MarkerStyle','none')
+ylim([-7,4])
 set(gca,'fontsize',16,'box','on'); drawnow;
 xlabel('Slope (degrees)','fontsize',16); 
 

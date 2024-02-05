@@ -25,7 +25,7 @@ abbrev = 'RCEW';
 DTM_name = [folderpath 'DEMs/RCEW_1m_WGS84UTM11_WGS84.tif'];
 
 %Turn slope correction off or on
-slope_correction = 0; % 0 = off, 1 = on
+slope_correction = 1; % 0 = off, 1 = on
 
 %Turn aspect correction off or on
 aspect_correction = 0; % 0 = off, 1 = on
@@ -34,10 +34,10 @@ aspect_correction = 0; % 0 = off, 1 = on
 icesat2_atl08 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL08-params'];
 ref_elevations_atl08 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL08-ref-elevations'];
 
-icesat2_atl06 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr'];
+icesat2_atl06 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06-SnowCover'];
 ref_elevations_atl06 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-params'];
 
-icesat2_atl06_class = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-atl08class'];
+icesat2_atl06_class = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06-atl08class-SnowCover'];
 ref_elevations_atl06_class = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-atl08class-params'];
 
 %set colors
@@ -103,17 +103,21 @@ E_off{1} = E_08(ix_off,:);
 I_on{1} = I_08(ix_on,:);
 E_on{1} = E_08(ix_on,:);
 
-%ATl06
-ix_off = find(I_06.time.Month >=6 & I_06.time.Month <= 9);
-ix_on = find(I_06.time.Month <=2 | I_06.time.Month >=12);
+% ATl06
+% ix_off = find(I_06.time.Month >=6 & I_06.time.Month <= 9);
+% ix_on = find(I_06.time.Month <=2 | I_06.time.Month >=12);
+ix_off = find(I_06.snowcover == 0);
+ix_on = find(I_06.snowcover == 1);
 I_off{2} = I_06(ix_off,:);
 E_off{2} = E_06(ix_off,:);
 I_on{2} = I_06(ix_on,:);
 E_on{2} = E_06(ix_on,:);
 
 %ATl06 atl08class
-ix_off = find(I_06class.time.Month >=6 & I_06class.time.Month <= 9);
-ix_on = find(I_06class.time.Month <=2 | I_06class.time.Month >=12);
+% ix_off = find(I_06class.time.Month >=6 & I_06class.time.Month <= 9);
+% ix_on = find(I_06class.time.Month <=2 | I_06class.time.Month >=12);
+ix_off = find(I_06class.snowcover == 0);
+ix_on = find(I_06class.snowcover == 1);
 I_off{3} = I_06class(ix_off,:);
 E_off{3} = E_06class(ix_off,:);
 I_on{3} = I_06class(ix_on,:);
@@ -393,16 +397,16 @@ yticks(ticks)
 yticklabels(string(dates,'MM-yyyy'))
 %-------------------------------------------------------------------------
 % %% Single Track plots
-% % ATL06 w/ atl08 classification
-% date = '24-Jul-2019'; %pick track date
-% dates = datetime(I_off{3}.time.Year,I_off{3}.time.Month,I_off{3}.time.Day);
-% ix = find(dates == date);
-% I_on_track = I_off{3}(ix,:);
-% E_on_track = E_off{3}(ix,:);
-% Residuals_track = Residuals_off{3}(ix,:);
-% 
-% Nstart=1;
-% Nend=65;
+% ATL06 w/ atl08 classification
+date = '23-Feb-2020'; %pick track date
+dates = datetime(I_off{3}.time.Year,I_off{3}.time.Month,I_off{3}.time.Day);
+ix = find(dates == date);
+I_on_track = I_off{3}(ix,:);
+E_on_track = E_off{3}(ix,:);
+Residuals_track = Residuals_off{3}(ix,:);
+
+Nstart=1;
+Nend=65;
 % 
 % fig5 = figure(5); clf
 % subplot(2,1,1); hold on
@@ -426,10 +430,11 @@ imagesc(x,y,DTM)
 daspect([1 1 1])
 colormap(cmocean('grey'))
 hold on
-scatter([I_06.Easting./(10^3)],[I_06.Northing./(10^3)],[],'g','.')
-xlabel('Easting (km)')
-ylabel('Northing (km)')
-set(gca,'fontsize',16);
+%scatter([I_06.Easting./(10^3)],[I_06.Northing./(10^3)],[],'g','.')
+%scatter([I_on_track.Easting(Nstart:Nend)./(10^3)],[I_on_track.Northing(Nstart:Nend)./(10^3)],'m','.')
+xlabel('Easting [km]')
+ylabel('Northing [km]')
+set(gca,'fontsize',20);
 set(gca,'Ydir','normal')
 c = colorbar;
 c.Label.String = 'Elevation (m)';
