@@ -107,7 +107,7 @@ for i = 1:size(IS2datenum_unique,1) %8
     ylabel('Northing [km]')
     set(gca,'fontsize',20); set(gca,'Ydir','normal');
     legend('Snow-free ICESat-2 point', 'Snow-covered ICESat-2 point')
-    waitfor(im); %close the figure to advance
+    %waitfor(im); %close the figure to advance
     
     %add to a vector (to later add to the data table)
     snowvector(inds) = IS2snow;
