@@ -25,23 +25,23 @@
 
 %% Inputs
 clearvars; close all;
-addpath(['./functions']) 
+addpath(['./functions'])
 
 %DTM (be sure the path ends in a /)
 DTM_path = 'Sites/RCEW/DEMs/';
-DTM_name = 'RCEW_1m_WGS84UTM11_WGS84_CoReg.tif';
+DTM_name = 'RCEW_1m_WGS84UTM11_WGS84_min_CoRegAlt.tif';
 
 if contains(DTM_name,'.tif')
     DTM_date = '20120826'; %only need to change this if the DTM is a geotiff
 end
 % Slope
-DTM_slope = 'RCEW_1m_WGS84UTM11_WGS84-slope_CoReg.tif';
+DTM_slope = 'RCEW_1m_WGS84UTM11_WGS84-slope_min_CoRegAlt.tif';
 % Aspect
-DTM_aspect = 'RCEW_1m_WGS84UTM11_WGS84-aspect_CoReg.tif';
+DTM_aspect = 'RCEW_1m_WGS84UTM11_WGS84-aspect_min_CoRegAlt.tif';
 
 
 %csv (be sure the path ends in a /)
-csv_path = ['/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/IS2_Data/'];
+csv_path = ['/Users/karinazikan/Documents/GitHub/ICESat2-AlpineSnow/Sites/RCEW/IS2_Data/'];
 
 csv_name = 'RCEW-ICESat2-ATL06sr-atl08class.csv';
 
@@ -52,7 +52,7 @@ abbrev = 'RCEW';
 acronym = 'ATL06'; %set to ATL06-20 for the 20m atl06 data
 
 %Set output name - MAKE SURE FILENAME SUFIX IS CORRECT!!!!!!!!!!!!!!!!!!!
-filename_sufix = '-ref-elevations-mean-CoReg';
+filename_sufix = '-ref-elevations-min-CoRegAlt';
 
 %% Set output name
 outputname = [abbrev,'-ICESat2-',acronym, filename_sufix, '.csv'];
@@ -67,7 +67,7 @@ elseif acronym == 'ATL06-20'
     default_length = 20;
 else
     error('acronym must be ATL06 or ATL06-20 or ATL08')
-end 
+end
 
 
 %days of year
@@ -159,7 +159,7 @@ for r=1:length(zmod)
     subslope = slope(iy,ix);
     subaspect = aspect(iy,ix);
 
-   %data in the footprint
+    %data in the footprint
     in = inpolygon(xsubgrid, ysubgrid, xv, yv); % get logical array of in values
     pointsinx = xsubgrid(in); % save x locations
     pointsiny = ysubgrid(in); % save y locations
@@ -178,7 +178,7 @@ for r=1:length(zmod)
     %     w = 15/16*(1-(dist/maxdist).^2).^2; %bisqared kernel
     %     elevation_report_mean(r,:) = sum(w.*elevationsin)./sum(w); %weighted elevation estimate
     %     elevation_report_std(r,:) = std(elevationsin); %std of the elevations within the footprint
-    % 
+    %
     %     %non wieghted average
     %     elevation_report_nw_mean(r,:) = nanmean(elevationsin); % non-wieghted elevations
     %     slope_mean(r,:) = nanmean(slopesin);
@@ -198,9 +198,12 @@ for r=1:length(zmod)
     elevation_report_mean(r,:) = sum(w.*elevationsin)./sum(w); %weighted elevation estimate
     elevation_report_std(r,:) = std(elevationsin); %std of the elevations within the footprint
 
-    %interpolated elevation
-    elevation_report_interp(r,:) = interp2(easts(r),norths(r),elevationsin,pointsinx,pointsinxy); % interpolated centerpoint elevation
-
+    % %interpolated elevation
+    % if sum(isnan(elevationsin))==0
+    %     elevation_report_interp(r,:) = interp2(pointsinx,pointsiny,elevationsin,easts(r),norths(r)); % interpolated centerpoint elevation
+    % else
+    %     elevation_report_interp(r,:) = NaN;
+    % end
     %non wieghted average
     elevation_report_nw_mean(r,:) = nanmean(elevationsin); % non-wieghted elevations
     slope_mean(r,:) = nanmean(slopesin);
@@ -208,6 +211,8 @@ for r=1:length(zmod)
     aspect_mean(r,:) = nanmean(aspectsin);
     aspect_std(r,:) = std(aspectsin);
 end
+%interpolated elevation
+
 toc
 
 % Write reference elevation table
