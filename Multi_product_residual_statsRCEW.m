@@ -34,7 +34,7 @@ icesat2_atl08 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL08-params'];
 ref_elevations_atl08 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL08-ref-elevations'];
 
 icesat2_atl06 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06-SnowCover'];
-ref_elevations_atl06 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-params'];
+ref_elevations_atl06 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06-ref-elevations-min-CoRegAlt'];
 
 icesat2_atl06_class = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06-atl08class-SnowCover'];
 ref_elevations_atl06_class = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-atl08class-params'];

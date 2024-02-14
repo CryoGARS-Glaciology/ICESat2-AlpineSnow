@@ -94,7 +94,6 @@ aspect = readgeoraster(DTM_aspect);
 cd_to_csv = ['cd ',csv_path]; eval(cd_to_csv);
 
 %filter R2erence DTM elevations
-% elevations(elevations < -10) = nan;
 elevations = DTM;
 elevations(elevations < -10) = nan; % throw out trash data
 elevations(elevations > 10000) = nan; % more trash takeout
