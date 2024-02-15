@@ -16,11 +16,11 @@
 %%%     acronym = ICESat-2 product acronym
 %%% OUTPUTS:
 %%%     Reference_Elevations = csv datatable reporting the non-weighted
-%%%         mean, std, weighted mean, and weighted fitted refference elevations,
+%%%         mean, std, weighted mean, and fitted refference elevations,
 %%%         mean slope, std slope, mean aspect, std aspect
 %%%         
 %%%
-%%% Last updated: Jan 2023 by Karina Zikan
+%%% Last updated: feb 2024 by Karina Zikan
 
 
 %% Inputs
