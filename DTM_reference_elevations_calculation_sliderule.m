@@ -16,11 +16,11 @@
 %%%     acronym = ICESat-2 product acronym
 %%% OUTPUTS:
 %%%     Reference_Elevations = csv datatable reporting the non-weighted
-%%%         mean, std, weighted mean, and weighted fitted refference elevations,
+%%%         mean, std, weighted mean, and fitted refference elevations,
 %%%         mean slope, std slope, mean aspect, std aspect
 %%%
 %%%
-%%% Last updated: Sep 2023 by Karina Zikan
+%%% Last updated: Feb 2024 by Karina Zikan
 
 
 %% Inputs
@@ -94,7 +94,6 @@ aspect = readgeoraster(DTM_aspect);
 cd_to_csv = ['cd ',csv_path]; eval(cd_to_csv);
 
 %filter R2erence DTM elevations
-% elevations(elevations < -10) = nan;
 elevations = DTM;
 elevations(elevations < -10) = nan; % throw out trash data
 elevations(elevations > 10000) = nan; % more trash takeout
@@ -158,7 +157,7 @@ for r=1:length(zmod)
     subslope = slope(iy,ix);
     subaspect = aspect(iy,ix);
 
-    %data in the footprint
+   %data in the footprint
     in = inpolygon(xsubgrid, ysubgrid, xv, yv); % get logical array of in values
     pointsinx = xsubgrid(in); % save x locations
     pointsiny = ysubgrid(in); % save y locations
@@ -177,7 +176,7 @@ for r=1:length(zmod)
     %     w = 15/16*(1-(dist/maxdist).^2).^2; %bisqared kernel
     %     elevation_report_mean(r,:) = sum(w.*elevationsin)./sum(w); %weighted elevation estimate
     %     elevation_report_std(r,:) = std(elevationsin); %std of the elevations within the footprint
-    %
+    % 
     %     %non wieghted average
     %     elevation_report_nw_mean(r,:) = nanmean(elevationsin); % non-wieghted elevations
     %     slope_mean(r,:) = nanmean(slopesin);
@@ -203,6 +202,7 @@ for r=1:length(zmod)
     else
         elevation_report_interp(r,:) = NaN;
     end
+
     %non wieghted average
     elevation_report_nw_mean(r,:) = nanmean(elevationsin); % non-wieghted elevations
     slope_mean(r,:) = nanmean(slopesin);
@@ -210,8 +210,6 @@ for r=1:length(zmod)
     aspect_mean(r,:) = nanmean(aspectsin);
     aspect_std(r,:) = std(aspectsin);
 end
-
-toc
 
 % Write reference elevation table
 E = table(elevation_report_nw_mean,elevation_report_mean,elevation_report_interp,elevation_report_std,slope_mean,slope_std,aspect_mean,aspect_std);
