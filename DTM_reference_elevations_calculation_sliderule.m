@@ -104,9 +104,8 @@ T = table; %create a table
 icesat2 = [csv_path,csv_name]; %compile the file name
 file = readtable(icesat2); %read in files
 T = [T; file];
-%T = T(1:5,:); % ONLY FOR TESTING!!!!!!!!!!
+T = T(1:5,:); % ONLY FOR TESTING!!!!!!!!!!
 
-% T = T([1:250],:);
 zmod = T.h_mean(:); % save the median 'model' elevations (icesat-2 elevations)
 % zmodfit = T.Elevation_bestfit(:); % save the fitted 'model' elevations (icesat-2 elevations_bestfit)
 % zmodfit(isnan(zmod)) = NaN;
@@ -198,12 +197,12 @@ for r=1:length(zmod)
     elevation_report_mean(r,:) = sum(w.*elevationsin)./sum(w); %weighted elevation estimate
     elevation_report_std(r,:) = std(elevationsin); %std of the elevations within the footprint
 
-    % %interpolated elevation
-    % if sum(isnan(elevationsin))==0
-    %     elevation_report_interp(r,:) = interp2(pointsinx,pointsiny,elevationsin,easts(r),norths(r)); % interpolated centerpoint elevation
-    % else
-    %     elevation_report_interp(r,:) = NaN;
-    % end
+    %interpolated elevation
+    if sum(isnan(elevationsin))==0
+        elevation_report_interp(r,:) = interp2(pointsinx,pointsiny,elevationsin,easts(r),norths(r)); % interpolated centerpoint elevation
+    else
+        elevation_report_interp(r,:) = NaN;
+    end
     %non wieghted average
     elevation_report_nw_mean(r,:) = nanmean(elevationsin); % non-wieghted elevations
     slope_mean(r,:) = nanmean(slopesin);
@@ -211,7 +210,6 @@ for r=1:length(zmod)
     aspect_mean(r,:) = nanmean(aspectsin);
     aspect_std(r,:) = std(aspectsin);
 end
-%interpolated elevation
 
 toc
 
@@ -219,7 +217,7 @@ toc
 E = table(elevation_report_nw_mean,elevation_report_mean,elevation_report_interp,elevation_report_std,slope_mean,slope_std,aspect_mean,aspect_std);
 
 %% write table to csv
-writetable(E,outputname);
+%writetable(E,outputname);
 
 
 %% Sanity Checks
