@@ -179,9 +179,6 @@ for r=1:length(zmod)
     elevation_report_mean(r,:) = sum(w.*elevationsin)./sum(w); %weighted elevation estimate
     elevation_report_std(r,:) = std(elevationsin); %std of the elevations within the footprint
 
-    %interpolated elevation
-    elevation_report_interp(r,:) = interp2(easts(r),norths(r),elevationsin,pointsinx,pointsinxy); % interpolated centerpoint elevation
-
     %non wieghted average
     elevation_report_nw_mean(r,:) = nanmean(elevationsin); % non-wieghted elevations
     slope_mean(r,:) = nanmean(slopesin);
@@ -189,6 +186,8 @@ for r=1:length(zmod)
     aspect_mean(r,:) = nanmean(aspectsin);
     aspect_std(r,:) = std(aspectsin);
 end
+%interpolated elevation
+elevation_report_interp = interp2(x,y,elevations,easts,norths);
 toc
 
 % Write reference elevation table

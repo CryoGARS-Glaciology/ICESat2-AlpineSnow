@@ -105,7 +105,6 @@ file = readtable(icesat2); %read in files
 T = [T; file];
 %T = T(1:5,:); % ONLY FOR TESTING!!!!!!!!!!
 
-% T = T([1:250],:);
 zmod = T.h_mean(:); % save the median 'model' elevations (icesat-2 elevations)
 % zmodfit = T.Elevation_bestfit(:); % save the fitted 'model' elevations (icesat-2 elevations_bestfit)
 % zmodfit(isnan(zmod)) = NaN;
@@ -166,26 +165,6 @@ for r=1:length(zmod)
     slopesin = subslope(in); % save slopes
     aspectsin = subaspect(in); % save slopes
 
-    % if sum(isnan(elevationsin))==0
-    %     %wieghted average
-    %     dist = nan([1,length(pointsinx)])'; %initialize dist
-    %     for a = 1:length(pointsinx)
-    %         phi = atan2d((pointsiny(a)-norths(r)),(pointsinx(a)-easts(r)));
-    %         dist(a)=abs(sqrt((pointsiny(a)-norths(r))^2+(pointsinx(a)-easts(r))^2)*sind(phi-theta(r))); %distance from the line in the center of the window
-    %     end
-    %     maxdist = footwidth/2; % defining the maximum distance a point can be from the center icesat2 point
-    %     w = 15/16*(1-(dist/maxdist).^2).^2; %bisqared kernel
-    %     elevation_report_mean(r,:) = sum(w.*elevationsin)./sum(w); %weighted elevation estimate
-    %     elevation_report_std(r,:) = std(elevationsin); %std of the elevations within the footprint
-    % 
-    %     %non wieghted average
-    %     elevation_report_nw_mean(r,:) = nanmean(elevationsin); % non-wieghted elevations
-    %     slope_mean(r,:) = nanmean(slopesin);
-    %     slope_std(r,:) = std(slopesin);
-    %     aspect_mean(r,:) = nanmean(aspectsin);
-    %     aspect_std(r,:) = std(aspectsin)
-    % end
-
     %wieghted average
     dist = nan([1,length(pointsinx)])'; %initialize dist
     for a = 1:length(pointsinx)
@@ -197,9 +176,6 @@ for r=1:length(zmod)
     elevation_report_mean(r,:) = sum(w.*elevationsin)./sum(w); %weighted elevation estimate
     elevation_report_std(r,:) = std(elevationsin); %std of the elevations within the footprint
 
-    %interpolated elevation
-    elevation_report_interp(r,:) = interp2(easts(r),norths(r),elevationsin,pointsinx,pointsinxy); % interpolated centerpoint elevation
-
     %non wieghted average
     elevation_report_nw_mean(r,:) = nanmean(elevationsin); % non-wieghted elevations
     slope_mean(r,:) = nanmean(slopesin);
@@ -207,6 +183,8 @@ for r=1:length(zmod)
     aspect_mean(r,:) = nanmean(aspectsin);
     aspect_std(r,:) = std(aspectsin);
 end
+%interpolated elevation
+elevation_report_interp = interp2(x,y,elevations,easts,norths);
 toc
 
 % Write reference elevation table
