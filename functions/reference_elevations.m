@@ -1,27 +1,25 @@
-function [E,Rnmad] = reference_elevations(icesat2_elevations, norths, easts, elevations, Ref, A)
+function [Rnmad,E] = reference_elevations(icesat2_elevations, norths, easts, end_flag, default_length, elevations, slope, aspect, Ref, A)
 % Function COREGISTER_ICESAT2 coregisters icesat-2 data with a corresponding digital
 % terrain model 
 % INPUTS:   icesat2_elevations = array of ICESat-2 elevations
 %           norths = array of ICESat-2 Northing coordinates
-%           easts = array of ICESat-2 Easting coordinates 
+%           easts = array of ICESat-2 Easting coordinates
+%           end_flag = location of the last data point of each track
+%           default_length = length of ICESat-2 averaving window
 %           elevations = the reference elevation matrix 
+%           slope =  slope matrix
+%           aspect =  aspect matrix
 %           Ref = the cell map reference for the reference DTM
 %           A = a [2 1] vector that serves as the spatial offsets in
 %                       the x and y directions (meters)
-% OUTPUTS:  E = 
+% OUTPUTS:  E = array of reference elevations
+%           Rnmad = normalized median absolute difference of
+%               ICESat-2_elevations - elevations
 
 % last modified Feb 2024 Karina Zikan (karinazikan@u.boisestate.edu)
 
 % Set ICESat-2 footwidth
 footwidth = 11; % approx. width of icesat2 shot footprint in meters
-
-%identify the ends of each transect and flag them so that neighboring
-%transects aren't used when constructing footprints (use beam variable & date)
-dates = T.date;
-[~,unique_refs] = unique([num2str(dates)],'rows');
-end_flag = zeros(size(norths,1),1);
-end_flag(unique_refs) = 1; end_flag(unique_refs(unique_refs~=1)-1) = 1; end_flag(end) = 1;
-
 
 %% Calculating footprints for each data point
 %define the Reference elevation data
@@ -87,8 +85,11 @@ end
 %interpolated elevation
 elevation_report_interp = interp2(x,y,elevations,easts,norths);
 
+%compile table of elevations
+E = table(elevation_report_nw_mean,elevation_report_mean,elevation_report_interp,elevation_report_std,slope_mean,slope_std,aspect_mean,aspect_std);
+
+% calculate mean & NMAD
 Residuals = icesat2_elevations - elevation_report_nw_mean; % difference ICESat-2 and ref elevations
 Rmean = nanmean(Residuals); % calculate mean of Residuals
-Rnmad = 1.4826*median(abs(Residuals-Rmean,'omitnan'); % normalized meadian absolute difference
+Rnmad = 1.4826*median(abs(Residuals-Rmean),'omitnan'); % normalized meadian absolute difference
 
-E = table(elevation_report_nw_mean,elevation_report_mean,elevation_report_interp,elevation_report_std,slope_mean,slope_std,aspect_mean,aspect_std);
