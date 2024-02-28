@@ -38,7 +38,7 @@ DTM_aspect = 'RCEW_1m_WGS84UTM11_WGS84-aspect.tif';
 
 
 %csv (be sure the path ends in a /)
-csv_path = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/IS2_Data/';
+csv_path = '/Users/karinazikan/Documents/GitHub/ICESat2-AlpineSnow/Sites/RCEW/IS2_Data/';
 csv_name = 'RCEW-ICESat2-ATL06-atl08class-SnowCover.csv';
 
 %site abbreviation for file names
@@ -125,12 +125,18 @@ end_flag_off = zeros(size(norths(ix_off,:),1),1);
 end_flag_off(unique_refs) = 1; end_flag_off(unique_refs(unique_refs~=1)-1) = 1; end_flag_off(end) = 1;
 
 %% Gradient Decent 
+tic
 GradDecentFunc = @(A)reference_elevations(zmod(ix_off,:), norths(ix_off,:), easts(ix_off,:), end_flag_off, default_length, elevations, slope, aspect, Ref, A); %create the handle to call the coregistration function
 [Abest,RMADbest] = fminsearch(GradDecentFunc,[0,0]); %initial horizontal offset estimate = [0,0] = [0 m East, 0 m North]
-fprintf('x-offset = %5.2f m & y-offset = %5.2f m w/ RNMAD = %5.2f m \n',Abest(:,1),Abest(:,2),RMADbest);
+save([abbrev,'-Abest.mat'],'Abest','-v7.3'); save([abbrev,'-RMADbest.mat'],'RMADbest','-v7.3'); %save offset for future
+fprintf('x-offset = %5.2f m & y-offset = %5.2f m w/ RNMAD = %5.2f m \n',Abest(:,1),Abest(:,2),RMADbest); 
+toc
 
+%% Calculate corregistered reference elevations
+[~,E] = reference_elevations(zmod, norths, easts, end_flag, default_length, elevations, slope, aspect, Ref, Abest); %calculate ref elevations with the shift
 
-
+%% save refelevation csv
+writetable(E,outputname);
 
 
 
