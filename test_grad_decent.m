@@ -1,18 +1,5 @@
-%%% This code was writen by Karina Zikan and Ellyn Enderlin 
-%%% 
-%%% SPECIFIED INPUTS:
-%%%     DTM_path = path to the reference DTM on your computer
-%%%     DTM_name = DTM file name
-%%%     DTM_slope = Slope map file name
-%%%     DTM_aspect = Aspect map file name
-%%%     csv_path = path to the ICESat-2 datafiles on your computer
-%%%     csv_name = name of ICESat-2 csv file
-%%%     abbrev = site abriviation for file name
-%%%     acronym = ICESat-2 product acronym
-%%% OUTPUTS:
-%%%     Reference_Elevations = csv datatable reporting the non-weighted
-%%%         mean, std, weighted mean, and fitted refference elevations,
-%%%         mean slope, std slope, mean aspect, std aspect
+%%% This code tests the gradient decent works as expected by applying a
+%%% known shift to the reference elevation data
 %%%         
 %%%
 %%% Last updated: feb 2024 by Karina Zikan
@@ -36,9 +23,8 @@ DTM_slope = 'RCEW_1m_WGS84UTM11_WGS84-slope.tif';
 DTM_aspect = 'RCEW_1m_WGS84UTM11_WGS84-aspect.tif';
 
 
-
-%csv (be sure the path ends in a /)
-csv_path = '/Users/karinazikan/Documents/GitHub/ICESat2-AlpineSnow/Sites/RCEW/IS2_Data/';
+% ICESat-2 csv (be sure the path ends in a /)
+csv_path = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/IS2_Data/';
 csv_name = 'RCEW-ICESat2-ATL06-atl08class-SnowCover.csv';
 
 %site abbreviation for file names
@@ -99,11 +85,9 @@ T = table; %create a table
 icesat2 = [csv_path,csv_name]; %compile the file name
 file = readtable(icesat2); %read in files
 T = [T; file];
-T = T(1:5000,:); % ONLY FOR TESTING!!!!!!!!!!
+T = T(1:1000,:); % ONLY FOR TESTING!!!!!!!!!!
 
 zmod = T.h_mean(:); % save the median 'model' elevations (icesat-2 elevations)
-% zmodfit = T.Elevation_bestfit(:); % save the fitted 'model' elevations (icesat-2 elevations_bestfit)
-% zmodfit(isnan(zmod)) = NaN;
 zstd = T.h_sigma; %save the standard deviation of the icesat-2 elevation estimates
 easts = T.Easting(:); % pull out the easting values
 norths = T.Northing(:); % pull out the northings
@@ -119,18 +103,15 @@ dates = datetime(T.time.Year,T.time.Month,T.time.Day);
 end_flag = zeros(size(norths,1),1);
 end_flag(unique_refs) = 1; end_flag(unique_refs(unique_refs~=1)-1) = 1; end_flag(end) = 1;
 
-dates_off = dates(ix_off,:);
-[~,unique_refs] = unique(dates_off);
-end_flag_off = zeros(size(norths(ix_off,:),1),1);
-end_flag_off(unique_refs) = 1; end_flag_off(unique_refs(unique_refs~=1)-1) = 1; end_flag_off(end) = 1;
+%% calculate elevations with no horizontal shift (ie A=[0,0])
+[~,E] = reference_elevations(zmod, norths, easts, end_flag, default_length, elevations, slope, aspect, Ref, [0,0]); %create the handle to call the coregistration function
 
-%% Gradient Decent 
-tic
-GradDecentFunc = @(A)reference_elevations(zmod(ix_off,:), norths(ix_off,:), easts(ix_off,:), end_flag_off, default_length, elevations, slope, aspect, Ref, A); %create the handle to call the coregistration function
-[Abest,RMADbest] = fminsearch(GradDecentFunc,[0,0]); %initial horizontal offset estimate = [0,0] = [0 m East, 0 m North]
-save([abbrev,'-Abest.mat'],'Abest','-v7.3'); save([abbrev,'-RMADbest.mat'],'RMADbest','-v7.3'); %save offset for future
-fprintf('x-offset = %5.2f m & y-offset = %5.2f m w/ RNMAD = %5.2f m \n',Abest(:,1),Abest(:,2),RMADbest); 
-toc
+%% Test Gradient Decent 
+test_offset = [1,2]; % horizontal offset [x,y]
+GradDecentFunc = @(A)reference_elevations(E.elevation_report_nw_mean, norths+test_offset(2), easts+test_offset(1), end_flag, default_length, elevations, slope, aspect, Ref, A); %create the handle to call the coregistration function
+[Abest,RMADbest] = fminsearch(GradDecentFunc,[0,0],optimset('PlotFcns',@optimplotfval,'TolX', 1e-15)); %initial horizontal offset estimate = [0,0] = [0 m East, 0 m North]
+fprintf('x-offset = %5.2f m & y-offset = %5.2f m w/ RNMAD = %5.2f m \n',Abest(:,1),Abest(:,2),RMADbest);
+
 
 %%
 A1 = -20:20;
@@ -144,19 +125,6 @@ end
 figure(1);
 imagesc(rmad_grid); 
 xticklabels(A1); yticklabels(A1); colorbar;
-
-%% Calculate corregistered reference elevations
-[~,E] = reference_elevations(zmod, norths, easts, end_flag, default_length, elevations, slope, aspect, Ref, Abest); %calculate ref elevations with the shift
-
-%% save refelevation csv
-writetable(E,outputname);
-
-
-
-
-
-
-
 
 
 
