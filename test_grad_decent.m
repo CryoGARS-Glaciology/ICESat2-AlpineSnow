@@ -24,7 +24,7 @@ DTM_aspect = 'RCEW_1m_WGS84UTM11_WGS84-aspect.tif';
 
 
 % ICESat-2 csv (be sure the path ends in a /)
-csv_path = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/IS2_Data/';
+csv_path = '/Users/karinazikan/Documents/GitHub/ICESat2-AlpineSnow/Sites/RCEW/IS2_Data/';
 csv_name = 'RCEW-ICESat2-ATL06-atl08class-SnowCover.csv';
 
 %site abbreviation for file names
@@ -107,13 +107,13 @@ end_flag(unique_refs) = 1; end_flag(unique_refs(unique_refs~=1)-1) = 1; end_flag
 [~,E] = reference_elevations(zmod, norths, easts, end_flag, default_length, elevations, slope, aspect, Ref, [0,0]); %create the handle to call the coregistration function
 
 %% Test Gradient Decent 
-test_offset = [1,2]; % horizontal offset [x,y]
+test_offset = [3,2]; % horizontal offset [x,y]
 GradDecentFunc = @(A)reference_elevations(E.elevation_report_nw_mean, norths+test_offset(2), easts+test_offset(1), end_flag, default_length, elevations, slope, aspect, Ref, A); %create the handle to call the coregistration function
-[Abest,RMADbest] = fminsearch(GradDecentFunc,[0,0],optimset('PlotFcns',@optimplotfval,'TolX', 1e-15)); %initial horizontal offset estimate = [0,0] = [0 m East, 0 m North]
+[Abest,RMADbest] = fminsearch(GradDecentFunc,[1,1],optimset('PlotFcns',@optimplotfval,'TolX', 1e-15)); %initial horizontal offset estimate = [0,0] = [0 m East, 0 m North]
 fprintf('x-offset = %5.2f m & y-offset = %5.2f m w/ RNMAD = %5.2f m \n',Abest(:,1),Abest(:,2),RMADbest);
 
 
-%%
+%% Grid of posible inputs to calculate initial guess
 A1 = -20:20;
 
 for i = 1:length(A1)
@@ -122,11 +122,20 @@ for i = 1:length(A1)
     end
 end
 
-figure(1);
+figure(2);
 imagesc(rmad_grid); 
-xticklabels(A1); yticklabels(A1); colorbar;
+xticks(1:41); yticks(1:41); 
+xticklabels(A1); yticklabels(A1); 
+colorbar;
 
+[row, col] = find(ismember(rmad_grid, min(rmad_grid(:))));
+Arow = A1(row); Acol = A1(col);
 
+%% Test Gradient Decent from grid guess
+test_offset = [3,2]; % horizontal offset [x,y]
+GradDecentFunc = @(A)reference_elevations(E.elevation_report_nw_mean, norths+test_offset(2), easts+test_offset(1), end_flag, default_length, elevations, slope, aspect, Ref, A); %create the handle to call the coregistration function
+[Agrid_best,RMADgrid_best] = fminsearch(GradDecentFunc,[Arow,Acol],optimset('PlotFcns',@optimplotfval,'TolX', 1e-15)); %initial horizontal offset estimate = [0,0] = [0 m East, 0 m North]
+fprintf('x-offset = %5.2f m & y-offset = %5.2f m w/ RNMAD = %5.2f m \n',Agrid_best(:,1),Agrid_best(:,2),RMADgrid_best);
 
 
 
