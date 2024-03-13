@@ -7,13 +7,10 @@
 %%% OUTPUTS:
 %%%     figures jpegs
 %%%
-%%% Last updated: Nov 2023 by Karina Zikan
+%%% Last updated: March 2024 by Karina Zikan
 
 %% Inputs
 clearvars;
-addpath(['/Users/karinazikan/Documents/functions'])
-addpath(['/Users/karinazikan/Documents/cmocean'])
-addpath(['/Users/karinazikan/Documents/ScientificColourMaps8'])
 
 %Folder path
 folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/';
@@ -21,7 +18,11 @@ folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/';
 abbrev = 'RCEW';
 
 %Turn slope correction off or on
-slope_correction = 0; % 0 = off, 1 = on
+slope_correction = 1; % 0 = off, 1 = on
+
+%Snotel Location
+snotel_E = 513544;
+snotel_N = 4792261;
 
 %% Load data
 % IS2 data
@@ -29,6 +30,7 @@ filepath = [folderpath 'IS2_Data/ATL06-atl08class-AllData_on.csv'];
 df_on = readtable(filepath);
 filepath = [folderpath 'IS2_Data/ATL06-atl08class-AllData_off.csv'];
 df_off = readtable(filepath);
+
 %snotel data
 snotel_files = dir([folderpath 'snotel/*.csv']);
 snotel = readtable([folderpath 'snotel/' snotel_files(1).name]);
@@ -50,6 +52,12 @@ if slope_correction == 1
     df_on.elev_residuals_vertcoreg = df_on.elev_residuals_vertcoreg-polyval(p,df_on.slope_mean);
     ('Slope correction applied')
 end
+% 
+% % Filter to near snotel station
+% df_on = df_on((df_on.Easting <= (snotel_E + 3000) & df_on.Easting >= (snotel_E - 3000)),:);
+% df_on = df_on((df_on.Northing <= (snotel_N + 3000) & df_on.Northing >= (snotel_N - 3000)),:);
+% df_off = df_off((df_off.Easting <= (snotel_E + 3000) & df_off.Easting >= (snotel_E - 3000)),:);
+% df_off = df_off((df_off.Northing <= (snotel_N + 3000) & df_off.Northing >= (snotel_N - 3000)),:);
 
 snowdepth = table([datetime(df_on.time.Year,df_on.time.Month,df_on.time.Day)], df_on.elev_residuals_vertcoreg, 'VariableNames',["time","residuals"]);
 snowdepth_dategroup = varfun(@(x)median(x,'omitnan'),snowdepth,'GroupingVariables',{'time'});

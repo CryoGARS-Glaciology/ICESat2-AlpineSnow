@@ -48,7 +48,7 @@ abbrev = 'RCEW';
 acronym = 'ATL06'; %set to ATL06-20 for the 20m atl06 data
 
 %Set output name - MAKE SURE FILENAME SUFIX IS CORRECT!!!!!!!!!!!!!!!!!!!
-filename_sufix = '-ref-elevations-grad-decent';
+filename_sufix = '-atl08class-ref-elevations-grid-grad-decent';
 
 %% Set output name
 outputname = [abbrev,'-ICESat2-',acronym, filename_sufix, '.csv'];
@@ -99,12 +99,15 @@ T = table; %create a table
 icesat2 = [csv_path,csv_name]; %compile the file name
 file = readtable(icesat2); %read in files
 T = [T; file];
-T = T(1:5000,:); % ONLY FOR TESTING!!!!!!!!!!
+T = T(1:500,:); % ONLY FOR TESTING!!!!!!!!!!
 
+%% ICESat-2 variables
+if acronym = 'ATL06'| acronym = 'ATL06-20'
 zmod = T.h_mean(:); % save the median 'model' elevations (icesat-2 elevations)
 % zmodfit = T.Elevation_bestfit(:); % save the fitted 'model' elevations (icesat-2 elevations_bestfit)
 % zmodfit(isnan(zmod)) = NaN;
 zstd = T.h_sigma; %save the standard deviation of the icesat-2 elevation estimates
+elseif acronym = 'ATL08'
 easts = T.Easting(:); % pull out the easting values
 norths = T.Northing(:); % pull out the northings
 footwidth = 11; % approx. width of icesat2 shot footprint in meters
@@ -126,27 +129,36 @@ end_flag_off(unique_refs) = 1; end_flag_off(unique_refs(unique_refs~=1)-1) = 1; 
 
 %% Gradient Decent 
 GradDecentFunc = @(A)reference_elevations(zmod(ix_off,:), norths(ix_off,:), easts(ix_off,:), end_flag_off, default_length, elevations, slope, aspect, Ref, A); %create the handle to call the coregistration function
-[Abest,RMADbest] = fminsearch(GradDecentFunc,[0,0]); %initial horizontal offset estimate = [0,0] = [0 m East, 0 m North]
-fprintf('x-offset = %5.2f m & y-offset = %5.2f m w/ RNMAD = %5.2f m \n',Abest(:,1),Abest(:,2),RMADbest);
-
+% [Abest,RMADbest] = fminsearch(GradDecentFunc,[0,0]); %initial horizontal offset estimate = [0,0] = [0 m East, 0 m North]
+% fprintf('x-offset = %5.2f m & y-offset = %5.2f m w/ RNMAD = %5.2f m \n',Abest(:,1),Abest(:,2),RMADbest);
+% 
 %%
-A1 = -20:20;
+A1 = -5:5;
 
+tic 
 for i = 1:length(A1)
-    for j = 1:length(A1)
+    parfor j = 1:length(A1)
         rmad_grid(i,j) = GradDecentFunc([A1(i),A1(j)]);
     end
 end
+toc
+
+%%
+tic 
+for i = 1:length(A1)
+    for j = 1:length(A1)
+        rmad_grid2(i,j) = GradDecentFunc([A1(i),A1(j)]);
+    end
+end
+toc
 
 figure(1);
 imagesc(rmad_grid); 
 xticklabels(A1); yticklabels(A1); colorbar;
-
-
-
-
-
-
+% 
+% %% Write final file
+% [~,E] = reference_elevations(zmod, norths, easts, end_flag, default_length, elevations, slope, aspect, Ref, [2.0004,-3.0086]);
+% writetable(E,outputname);
 
 
 
