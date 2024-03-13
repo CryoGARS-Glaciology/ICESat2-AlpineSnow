@@ -103,10 +103,17 @@ file = readtable(icesat2); %read in files
 T = [T; file];
 %T = T(1:5000,:); % ONLY FOR TESTING!!!!!!!!!!
 
-zmod = T.h_mean(:); % save the median 'model' elevations (icesat-2 elevations)
-% zmodfit = T.Elevation_bestfit(:); % save the fitted 'model' elevations (icesat-2 elevations_bestfit)
-% zmodfit(isnan(zmod)) = NaN;
-zstd = T.h_sigma; %save the standard deviation of the icesat-2 elevation estimates
+
+%% ICESat-2 variables
+if acronym == 'ATL06'| acronym == 'ATL06-20'
+    zmod = T.h_mean(:); % save the median 'model' elevations (icesat-2 elevations)
+    zstd = T.h_sigma; %save the standard deviation of the icesat-2 elevation estimates
+elseif acronym == 'ATL08'
+    zmod = T.Elevation(:); % save the median 'model' elevations (icesat-2 elevations)
+    zstd = T.std; %save the standard deviation of the icesat-2 elevation estimates
+else
+    error('Error: the variable acronym must be ATL06, ATL06-20, or ATL08. Set acronym in the inputs')
+end
 easts = T.Easting(:); % pull out the easting values
 norths = T.Northing(:); % pull out the northings
 footwidth = 11; % approx. width of icesat2 shot footprint in meters
