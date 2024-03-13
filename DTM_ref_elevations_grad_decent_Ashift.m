@@ -33,11 +33,11 @@ DTM_slope = 'RCEW_1m_WGS84UTM11_WGS84-slope.tif';
 % Aspect
 DTM_aspect = 'RCEW_1m_WGS84UTM11_WGS84-aspect.tif';
 
-
+Ashift = 'RCEW_Ashift.csv';
 
 %csv (be sure the path ends in a /)
 csv_path = '/Users/karinazikan/Documents/GitHub/ICESat2-AlpineSnow/Sites/RCEW/IS2_Data/';
-csv_name = 'RCEW-ICESat2-ATL06-atl08class-SnowCover.csv';
+csv_name = 'RCEW-ICESat2-ATL06-SnowCover.csv';
 
 %site abbreviation for file names
 abbrev = 'RCEW';
@@ -111,9 +111,9 @@ easts = T.Easting(:); % pull out the easting values
 norths = T.Northing(:); % pull out the northings
 footwidth = 11; % approx. width of icesat2 shot footprint in meters
 
-%% Snow free data
-ix_off = find(T.snowcover == 0);
+Ashift = readmatrix(Ashift);
 
+%% Snow free data
 %identify the ends of each transect and flag them so that neighboring
 %transects aren't used when constructing footprints (use beam variable & date)
 dates = datetime(T.time.Year,T.time.Month,T.time.Day);
@@ -121,65 +121,10 @@ dates = datetime(T.time.Year,T.time.Month,T.time.Day);
 end_flag = zeros(size(norths,1),1);
 end_flag(unique_refs) = 1; end_flag(unique_refs(unique_refs~=1)-1) = 1; end_flag(end) = 1;
 
-dates_off = dates(ix_off,:);
-[~,unique_refs] = unique(dates_off);
-end_flag_off = zeros(size(norths(ix_off,:),1),1);
-end_flag_off(unique_refs) = 1; end_flag_off(unique_refs(unique_refs~=1)-1) = 1; end_flag_off(end) = 1;
-% 
-% %% Gradient Decent 
-% tic
-GradDecentFunc = @(A)reference_elevations(zmod(ix_off,:), norths(ix_off,:), easts(ix_off,:), end_flag_off, default_length, elevations, slope, aspect, Ref, A); %create the handle to call the coregistration function
-% [Abest,RMADbest] = fminsearch(GradDecentFunc,[0,0]); %initial horizontal offset estimate = [0,0] = [0 m East, 0 m North]
-% %save([abbrev,'-Abest.mat'],'Abest','-v7.3'); save([abbrev,'-RMADbest.mat'],'RMADbest','-v7.3'); %save offset for future
-% fprintf('x-offset = %5.2f m & y-offset = %5.2f m w/ RNMAD = %5.2f m \n',Abest(:,1),Abest(:,2),RMADbest); 
-% toc
-
-%% Grid of posible inputs to calculate initial guess
-A1 = -5:5;
-
-for i = 1:length(A1)
-    tic
-    for j = 1:length(A1)
-        rmad_grid(i,j) = GradDecentFunc([A1(i),A1(j)]);
-    end
-    toc
-    writematrix(rmad_grid,[abbrev,'_rmadGrid.csv'])
-end
-
-figure(2);
-imagesc(rmad_grid); 
-xticks(1:41); yticks(1:41); 
-xticklabels(A1); yticklabels(A1); 
-colorbar;
-
-[row, col] = find(ismember(rmad_grid, min(rmad_grid(:))));
-Arow = A1(row); Acol = A1(col);
-writematrix([Arow,Acol],[abbrev,'_Ashift.csv'])
-
-% %% Test Gradient Decent from grid guess
-% tic
-% GradDecentFunc = @(A)reference_elevations(zmod(ix_off,:), norths(ix_off,:), easts(ix_off,:), end_flag_off, default_length, elevations, slope, aspect, Ref, A); %create the handle to call the coregistration function
-% [Agrid_best,RMADgrid_best] = fminsearch(GradDecentFunc,[Arow,Acol],optimset('PlotFcns',@optimplotfval)); %initial horizontal offset estimate = [0,0] = [0 m East, 0 m North]
-fprintf('x-offset = %5.2f m & y-offset = %5.2f m w/ RNMAD = %5.2f m \n',Acol,Arow,min(rmad_grid(:)));
-% toc
-
-
 %% Calculate corregistered reference elevations
-[~,E] = reference_elevations(zmod, norths, easts, end_flag, default_length, elevations, slope, aspect, Ref, [Arow,Acol]); %calculate ref elevations with the shift
+tic
+[~,E] = reference_elevations(zmod, norths, easts, end_flag, default_length, elevations, slope, aspect, Ref, Ashift); %calculate ref elevations with the shift
+toc
 
 %% save refelevation csv
 writetable(E,outputname);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
