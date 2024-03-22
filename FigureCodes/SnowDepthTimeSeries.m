@@ -53,11 +53,12 @@ if slope_correction == 1
     ('Slope correction applied')
 end
 % 
-% % Filter to near snotel station
-% df_on = df_on((df_on.Easting <= (snotel_E + 3000) & df_on.Easting >= (snotel_E - 3000)),:);
-% df_on = df_on((df_on.Northing <= (snotel_N + 3000) & df_on.Northing >= (snotel_N - 3000)),:);
-% df_off = df_off((df_off.Easting <= (snotel_E + 3000) & df_off.Easting >= (snotel_E - 3000)),:);
-% df_off = df_off((df_off.Northing <= (snotel_N + 3000) & df_off.Northing >= (snotel_N - 3000)),:);
+% Filter to near snotel station
+window = 500;
+df_on = df_on((df_on.Easting <= (snotel_E + window) & df_on.Easting >= (snotel_E - window)),:);
+df_on = df_on((df_on.Northing <= (snotel_N + window) & df_on.Northing >= (snotel_N - window)),:);
+df_off = df_off((df_off.Easting <= (snotel_E + window) & df_off.Easting >= (snotel_E - window)),:);
+df_off = df_off((df_off.Northing <= (snotel_N + window) & df_off.Northing >= (snotel_N - window)),:);
 
 snowdepth = table([datetime(df_on.time.Year,df_on.time.Month,df_on.time.Day)], df_on.elev_residuals_vertcoreg, 'VariableNames',["time","residuals"]);
 snowdepth_dategroup = varfun(@(x)median(x,'omitnan'),snowdepth,'GroupingVariables',{'time'});

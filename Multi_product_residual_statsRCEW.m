@@ -37,7 +37,7 @@ icesat2_atl06 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06-SnowCover'];
 ref_elevations_atl06 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06-ref-elevations-min-CoRegAlt'];
 
 icesat2_atl06_class = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06-atl08class-SnowCover'];
-ref_elevations_atl06_class = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-atl08class-params'];
+ref_elevations_atl06_class = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06-atl08class-ref-elevations-grid-grad-decent'];
 
 
 %set colors
@@ -218,7 +218,7 @@ for i = 1:N_Products
         Rstd{i}(:,j) = std(Residuals(:,j),'omitnan'); % calculate std of Residuals
         Rmed{i}(:,j) = median(Residuals(:,j),'omitnan');
         Rmad{i}(:,j) = median(abs(Residuals(:,j)-Rmean{i}(:,j)),'omitnan');
-        Rnmad{i}(:,j) = 1.4826*median(abs(Residuals(:,j)-Rmean{i}(:,j)),'omitnan');
+        Rnmad{i}(:,j) = 1.4826*median(abs(Residuals(:,j)-Rmean{i}(:,j)),'omitnan'); % normalized meadian absolute difference
         Rrmse{i}(:,j) = sqrt(nansum((Residuals(:,j)).^2)./length(Residuals(:,j))); %calculate rmse of  Residuals
         
 

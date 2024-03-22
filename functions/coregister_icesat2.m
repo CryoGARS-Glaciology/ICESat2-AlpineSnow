@@ -22,7 +22,6 @@ elseif contains(icesat2(1,:), 'ATL06') % ATL06 commands
 end
 
 %filter reference DTM elevations
-% elevations(elevations < -10) = nan;
 elevations(elevations < -10) = nan; % throw out trash data
 elevations(elevations > 10000) = nan; % more trash takeout
 
