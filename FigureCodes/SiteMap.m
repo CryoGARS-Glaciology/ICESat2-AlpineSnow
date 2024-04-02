@@ -12,16 +12,19 @@
 
 %% Inputs
 clearvars;
-addpath(['./functions'])
+addpath(['/Users/karinazikan/Documents/ICESat2-AlpineSnow/functions'])
 addpath(['/Users/karinazikan/Documents/cmocean'])
 
 %Folder path
-folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/';
+folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/MCS/';
 %site abbreviation for file names
-abbrev = 'RCEW';
+abbrev = 'MCS';
 
 % DEM path
-DTM_name = [folderpath 'DEMs/RCEW_1m_WGS84UTM11_WGS84.tif'];
+DTM_name = [folderpath 'DEMs/MCS_REFDEM_WGS84.tif'];
+% DTM_name = [folderpath 'DEMs/RCEW_1m_WGS84UTM11_WGS84.tif'];
+% DTM_name = [folderpath 'DEMs/Banner_Bare_Earth_DEMs_mosaic_UTM11WGS84.tif'];
+% DTM_name = [folderpath 'DEMs/DryCreekBase1m_WGS84UTM11_DEM.tif'];
 
 %%
 %File paths
@@ -30,10 +33,10 @@ ref_elevations_atl06_class = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-at
 
 %% Load data ({1} = ATL08, {2} = ATL06, {3} = ATL06 w/ ATL08 classification)
 %load the reference elevation data
-E = readtable(ref_elevations_atl06_class);
-
-%load the ICESat-2 data
-I = readtable(icesat2_atl06_class);
+filepath = strcat(folderpath, 'IS2_Data/ATL06-atl08class-AllData.csv');
+df = readtable(filepath);
+df.Easting = df.Easting./(10^3);
+df.Northing = df.Northing./(10^3);
 
 footwidth = 11; % approx. width of icesat2 shot footprint in meters
 
@@ -61,22 +64,30 @@ DTM(DTM<0) = NaN;
 
 %% Track Plots
 date = '23-Feb-2020';
-dates = datetime(I.time.Year,I.time.Month,I.time.Day);
+dates = datetime(df.time.Year,df.time.Month,df.time.Day);
 ix = find(dates == date);
-I_track = I(ix,:);
-E_track = E(ix,:);
-
+Track = df(ix,:);
 
 figure(1); clf
 imagesc(x,y,DTM); hold on
 daspect([1 1 1]); colormap(cmocean('grey'));
-scatter([I.Easting./(10^3)],[I.Northing./(10^3)],[],'green','.')
-scatter([I_track.Easting./(10^3)],[I_track.Northing./(10^3)],[],'magenta','.')
+scatter([df.Easting],[df.Northing],[],'green','.')
+scatter([Track.Easting./(10^3)],[Track.Northing./(10^3)],[],'magenta','.')
 xlabel('Easting [km]'); ylabel('Northing [km]');
 set(gca,'fontsize',20); set(gca,'Ydir','normal');
 c = colorbar;
 c.Label.String = 'Elevation (m)';
 
+% %% Residual Map Plots
+% figure(2); clf
+% imagesc(x,y,DTM); hold on
+% daspect([1 1 1]); colormap(cmocean('grey'));
+% scatter(df,'Easting','Northing','elev_residuals_vertcoreg_slopecorrected')
+% xlabel('Easting [km]'); ylabel('Northing [km]');
+% set(gca,'fontsize',20); set(gca,'Ydir','normal');
+% c = colorbar;
+% c.Label.String = 'Elevation (m)';
+% 
 
 
 

@@ -13,16 +13,20 @@
 clearvars;
 
 %Folder path
-folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/';
+folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/MCS/';
 %site abbreviation for file names
-abbrev = 'RCEW';
+abbrev = 'MCS';
 
 %Turn slope correction off or on
-slope_correction = 1; % 0 = off, 1 = on
+slope_correction = 0; % 0 = off, 1 = on
 
-%Snotel Location
-snotel_E = 513544;
-snotel_N = 4792261;
+%Weather Station Location
+    % Banner snotel: snotel_E = 640823; snotel_N = 4907084;
+    % MCS snotel: snotel_E = 607075; snotel_N = 4865193;
+    % Reynolds snowex: snotel_E = 519729; snotel_N = 4768225;
+    % DCEW little deer point AWS: snotel_E = 570697; snotel_N = 4843042;
+snotel_E = 607075; snotel_N = 4865193;
+
 
 %% Load data
 % IS2 data
@@ -50,15 +54,16 @@ if slope_correction == 1
     p = polyfit(x,y,2); % fit quadratic
     % Vertical corregistration
     df_on.elev_residuals_vertcoreg = df_on.elev_residuals_vertcoreg-polyval(p,df_on.slope_mean);
+    df_off.elev_residuals_vertcoreg = df_off.elev_residuals_vertcoreg-polyval(p,df_off.slope_mean);
     ('Slope correction applied')
 end
-% 
-% Filter to near snotel station
-window = 500;
-df_on = df_on((df_on.Easting <= (snotel_E + window) & df_on.Easting >= (snotel_E - window)),:);
-df_on = df_on((df_on.Northing <= (snotel_N + window) & df_on.Northing >= (snotel_N - window)),:);
-df_off = df_off((df_off.Easting <= (snotel_E + window) & df_off.Easting >= (snotel_E - window)),:);
-df_off = df_off((df_off.Northing <= (snotel_N + window) & df_off.Northing >= (snotel_N - window)),:);
+
+% % Filter to near snotel station
+% window = 200;
+% df_on = df_on((df_on.Easting <= (snotel_E + window) & df_on.Easting >= (snotel_E - window)),:);
+% df_on = df_on((df_on.Northing <= (snotel_N + window) & df_on.Northing >= (snotel_N - window)),:);
+% df_off = df_off((df_off.Easting <= (snotel_E + window) & df_off.Easting >= (snotel_E - window)),:);
+% df_off = df_off((df_off.Northing <= (snotel_N + window) & df_off.Northing >= (snotel_N - window)),:);
 
 snowdepth = table([datetime(df_on.time.Year,df_on.time.Month,df_on.time.Day)], df_on.elev_residuals_vertcoreg, 'VariableNames',["time","residuals"]);
 snowdepth_dategroup = varfun(@(x)median(x,'omitnan'),snowdepth,'GroupingVariables',{'time'});
@@ -73,6 +78,12 @@ load('/Users/karinazikan/Documents/ScientificColourMaps8/vik/DiscretePalettes/vi
 
 %timeseries
 fig1 = figure(1); clf
+plot(snoteldepth_dategroup.time,snoteldepth_dategroup.Fun_SnowDepth, 'LineWidth',2)
+legend('SNOTEL mean snow depth')
+set(gca,'fontsize',20);
+ylabel('Snow Depth (m)') 
+
+fig2 = figure(2); clf
 plot(snoteldepth_dategroup.time,snoteldepth_dategroup.Fun_SnowDepth, 'LineWidth',2,'Color',[0.9290, 0.6940, 0.1250]	)
 hold on
 scatter(snowdepth_dategroup.time,snowdepth_dategroup.Fun_residuals,'filled','MarkerFaceColor',[0, 0.4470, 0.7410])
@@ -80,7 +91,7 @@ legend('SNOTEL mean snow depth','ICESat-2 median snow depth')
 set(gca,'fontsize',16);
 ylabel('Snow Depth (m)')
 
-fig2 = figure(2); clf
+fig3 = figure(3); clf
 plot(snoteldepth_dategroup.time,snoteldepth_dategroup.Fun_SnowDepth, 'LineWidth',2,'Color',[0.9290, 0.6940, 0.1250]	)
 hold on
 scatter(elevresiduals_dategroup.time,elevresiduals_dategroup.Fun_residuals,'MarkerEdgeColor',[0.8500, 0.3250, 0.0980])
@@ -89,11 +100,7 @@ legend('SNOTEL mean snow depth','ICESat-2 median snow free elevation residuals',
 set(gca,'fontsize',20);
 ylabel('Snow Depth (m)')
 
-fig3 = figure(3); clf
-plot(snoteldepth_dategroup.time,snoteldepth_dategroup.Fun_SnowDepth, 'LineWidth',2)
-legend('SNOTEL mean snow depth')
-set(gca,'fontsize',20);
-ylabel('Snow Depth (m)')
+
 
 
 

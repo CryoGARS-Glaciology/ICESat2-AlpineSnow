@@ -326,31 +326,7 @@ ResidualsTable.slope = [I_08.slope; E_06.slope_mean; E_06_class.slope_mean];
 % ResidualsTable.aspect = [I_06.aspect; I_06_class.aspect];
 % ResidualsTable.slope = [I_06.slope; I_06_class.slope];
 
-Nbin = 8; %set humber of bins for box plots
-fig8 = figure(8); clf
-%ELEVATION
-subplot(3,1,1);
-h = histogram(E_08.elevation_report_mean(~isnan(ResidualsAll{1}(:,1))),Nbin);
-elev_binwidth = h.BinWidth; elev_binedges = h.BinEdges;
-clear h;
-xlabel('Elevation (m a.s.l.)','fontsize',16); %ylabel('Elevation residuals (m)','fontsize',16);
-%close(gcf);
-%ASPECT
-subplot(3,1,2);
-h = histogram(I_08.aspect(~isnan(ResidualsAll{1}(:,1))),Nbin);
-aspect_binwidth = h.BinWidth; aspect_binedges = h.BinEdges;
-clear h;
-xlabel('Aspect (degrees)','fontsize',16); ylabel('Observations','fontsize',16);
-% close(gcf);
-%SLOPE
-subplot(3,1,3);
-h = histogram(I_08.slope(~isnan(ResidualsAll{1}(:,1))),Nbin);
-slope_binwidth = h.BinWidth; slope_binedges = h.BinEdges;
-clear h;
-xlabel('Slope (degrees)','fontsize',16);
-% close(gcf);
-
-whiskerline = '-'; outliermarker = 'o';
+                                                                                                         
 
 % % boxplot figure
 % fig9 = figure(9); clf

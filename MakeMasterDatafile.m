@@ -24,7 +24,7 @@ abbrev = 'RCEW';
 
 %File paths
 icesat2 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06-atl08class-SnowCover'];
-ref_elevations = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-atl08class-params'];
+ref_elevations = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06-atl08class-ref-elevations-grid-grad-decent'];
 
 %output file name
 outputname = 'ATL06-atl08class-AllData';
@@ -50,22 +50,25 @@ Residuals =  I.h_mean - E.elevation_report_nw_mean;
 Residuals_off(Residuals_off > 80) = NaN; Residuals_off(Residuals_off < -80) = NaN;
 Residuals(Residuals > 80) = NaN; Residuals(Residuals < -80) = NaN;
 
+%calculate quadratic slope correction
+slope = E_off.slope_mean;
+x= slope; y = Residuals(ix);
+ind = isnan(x) | isnan(y); %index nans
+x(ind) = []; y(ind) = []; %remove nans
+p = polyfit(x,y,2); % fit quadratic
+% Vertical corregistration
+elev_residuals_slopecorrected = Residuals-polyval(p,E.slope_mean);
+elev_residuals_slopecorrected_off = elev_residuals_slopecorrected(ix);
+
 % shift by median snow-off residual to vertically coregister residuals
 Residuals_VertCoreg = Residuals - median(Residuals_off,'omitnan');
+elev_residuals_vertcoreg_slopecorrected = elev_residuals_slopecorrected - median(elev_residuals_slopecorrected_off,'omitnan');
 
 %% Combine all data into one file
 Output = [I E];
 Output.elev_residuals = Residuals;
 Output.elev_residuals_vertcoreg = Residuals_VertCoreg;
-
- %calculate quadratic slope correction
-    slope = E_off.slope_mean;
-    x= slope; y = Residuals_VertCoreg(ix);
-    ind = isnan(x) | isnan(y); %index nans
-    x(ind) = []; y(ind) = []; %remove nans
-    p = polyfit(x,y,2); % fit quadratic
-    % Vertical corregistration
-    Output.elev_residuals_vertcoreg_slopecorrected = Residuals_VertCoreg-polyval(p,E.slope_mean);
+Output.elev_residuals_vertcoreg_slopecorrected = elev_residuals_vertcoreg_slopecorrected;
 
 Output_off = Output(Output.snowcover == 0,:);
 Output_on = Output(Output.snowcover == 1,:);
