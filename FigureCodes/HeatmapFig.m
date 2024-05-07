@@ -15,9 +15,9 @@ addpath(['/Users/karinazikan/Documents/functions'])
 addpath(['/Users/karinazikan/Documents/cmocean'])
 
 %Folder path
-folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/DCEW_2/';
+folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/Banner/';
 %site abbreviation for file names
-abbrev = 'DCEW2';
+abbrev = 'Banner';
 
 %Turn slope correction off or on
 slope_correction = 1; % 0 = off, 1 = on
@@ -31,6 +31,8 @@ df = readtable(filepath);
 % ATL06 classified
 SnowDepthAll =  df.elev_residuals_vertcoreg;
 SnowDepthAll(SnowDepthAll > 80) = NaN; SnowDepthAll(SnowDepthAll < -80) = NaN; %remove extreme outliers
+% %filter out extreme slopes
+% SnowDepthAll(df.slope_mean > 30) = NaN; 
 
 if slope_correction == 1
     ix_off = find(df.snowcover == 0);

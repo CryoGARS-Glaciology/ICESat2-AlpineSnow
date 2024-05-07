@@ -36,7 +36,7 @@ DTM_aspect = 'RCEW_1m_WGS84UTM11_WGS84-aspect.tif';
 
 
 %csv (be sure the path ends in a /)
-csv_path = '/Users/karinazikan/Documents/GitHub/ICESat2-AlpineSnow/Sites/RCEW/IS2_Data/';
+csv_path = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/IS2_Data/';
 csv_name = 'RCEW-ICESat2-ATL06-atl08class-SnowCover.csv';
 
 %site abbreviation for file names
@@ -101,7 +101,7 @@ T = table; %create a table
 icesat2 = [csv_path,csv_name]; %compile the file name
 file = readtable(icesat2); %read in files
 T = [T; file];
-%T = T(1:5000,:); % ONLY FOR TESTING!!!!!!!!!!
+T = T(1:1000,:); % ONLY FOR TESTING!!!!!!!!!!
 
 
 %% ICESat-2 variables
@@ -144,16 +144,16 @@ GradDecentFunc = @(A)reference_elevations(zmod(ix_off,:), norths(ix_off,:), east
 %% Grid of posible inputs to calculate initial guess
 A1 = -5:5;
 
-tic 
-for i = 1:length(A1)
-    tic
-    parfor j = 1:length(A1)
-        rmad_grid(i,j) = GradDecentFunc([A1(i),A1(j)]);
-    end
-    toc
-    writematrix(rmad_grid,[abbrev,'_rmadGrid.csv'])
-end
-toc
+% tic 
+% for i = 1:length(A1)
+%     tic
+%     parfor j = 1:length(A1)
+%         rmad_grid(i,j) = GradDecentFunc([A1(i),A1(j)]);
+%     end
+%     toc
+%     writematrix(rmad_grid,[abbrev,'_rmadGrid.csv'])
+% end
+% toc
 
 %%
 tic 
@@ -163,13 +163,15 @@ for i = 1:length(A1)
     end
 end
 toc
-
+%%
 figure(2);
-imagesc(rmad_grid); 
+imagesc(rmad_grid2); 
 
 xticks(1:41); yticks(1:41); 
 xticklabels(A1); yticklabels(A1); 
-colorbar;
+set(gca,'fontsize',18);
+colormap; c = colorbar; c.Label.String = 'NMAD (m)';
+ylabel('Northing Offset (m)'); xlabel('Easting Offset (m)');
 
 [row, col] = find(ismember(rmad_grid, min(rmad_grid(:))));
 Arow = A1(row); Acol = A1(col);
@@ -187,7 +189,7 @@ fprintf('x-offset = %5.2f m & y-offset = %5.2f m w/ RNMAD = %5.2f m \n',Acol,Aro
 [~,E] = reference_elevations(zmod, norths, easts, end_flag, default_length, elevations, slope, aspect, Ref, [Arow,Acol]); %calculate ref elevations with the shift
 
 %% save refelevation csv
-writetable(E,outputname);
+%writetable(E,outputname);
 
 
 

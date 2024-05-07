@@ -16,15 +16,15 @@ addpath(['/Users/karinazikan/Documents/ICESat2-AlpineSnow/functions'])
 addpath(['/Users/karinazikan/Documents/cmocean'])
 
 %Folder path
-folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/MCS/';
+folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/DCEW_2/';
 %site abbreviation for file names
-abbrev = 'MCS';
+abbrev = 'DCEW2';
 
 % DEM path
-DTM_name = [folderpath 'DEMs/MCS_REFDEM_WGS84.tif'];
-% DTM_name = [folderpath 'DEMs/RCEW_1m_WGS84UTM11_WGS84.tif'];
-% DTM_name = [folderpath 'DEMs/Banner_Bare_Earth_DEMs_mosaic_UTM11WGS84.tif'];
-% DTM_name = [folderpath 'DEMs/DryCreekBase1m_WGS84UTM11_DEM.tif'];
+%DTM_name = [folderpath 'DEMs/MCS_REFDEM_WGS84.tif'];
+%DTM_name = [folderpath 'DEMs/RCEW_1m_WGS84UTM11_WGS84.tif'];
+%DTM_name = [folderpath 'DEMs/Banner_Bare_Earth_DEMs_mosaic_UTM11WGS84.tif'];
+DTM_name = [folderpath 'DEMs/DryCreekBase1m_WGS84UTM11_DEM.tif'];
 
 %%
 %File paths
@@ -55,11 +55,11 @@ else
     end
     [xgrid, ygrid] = meshgrid(x, y); % create grids of each of the x and y coords
 end
-DTM(DTM>(2.5*10^3)) = NaN;
+DTM(DTM>(2.3*10^3)) = NaN;
 x = x./(10^3); % to km
 y = y./(10^3);% to km
 %y = flip(y);
-DTM(DTM<0) = NaN;
+DTM(DTM<1000) = NaN;
 
 
 %% Track Plots
@@ -70,9 +70,9 @@ Track = df(ix,:);
 
 figure(1); clf
 imagesc(x,y,DTM); hold on
-daspect([1 1 1]); colormap(cmocean('grey'));
+daspect([1 1 1]); colormap([0 0 0; cmocean('grey')]); %('topo','pivot',min(min(DTM)))])
 scatter([df.Easting],[df.Northing],[],'green','.')
-scatter([Track.Easting./(10^3)],[Track.Northing./(10^3)],[],'magenta','.')
+%scatter([Track.Easting],[Track.Northing],[],'magenta','.')
 xlabel('Easting [km]'); ylabel('Northing [km]');
 set(gca,'fontsize',20); set(gca,'Ydir','normal');
 c = colorbar;
