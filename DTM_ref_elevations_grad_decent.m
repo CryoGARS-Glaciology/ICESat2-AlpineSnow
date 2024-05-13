@@ -61,10 +61,10 @@ if acronym == 'ATL08'
     default_length = 100;
 elseif acronym == 'ATL06'
     default_length = 40;
-elseif acronym == 'ATL06-20'
+elseif acronym == 'A6-20'
     default_length = 20;
 else
-    error('acronym must be ATL06 or ATL06-20 or ATL08')
+    error('acronym must be ATL06 or A6-20 or ATL08')
 end
 
 
@@ -101,19 +101,12 @@ T = table; %create a table
 icesat2 = [csv_path,csv_name]; %compile the file name
 file = readtable(icesat2); %read in files
 T = [T; file];
-T = T(1:1000,:); % ONLY FOR TESTING!!!!!!!!!!
+%T = T(1:5000,:); % ONLY FOR TESTING!!!!!!!!!!
 
-
-%% ICESat-2 variables
-if acronym == 'ATL06'| acronym == 'ATL06-20'
-    zmod = T.h_mean(:); % save the median 'model' elevations (icesat-2 elevations)
-    zstd = T.h_sigma; %save the standard deviation of the icesat-2 elevation estimates
-elseif acronym == 'ATL08'
-    zmod = T.Elevation(:); % save the median 'model' elevations (icesat-2 elevations)
-    zstd = T.std; %save the standard deviation of the icesat-2 elevation estimates
-else
-    error('Error: the variable acronym must be ATL06, ATL06-20, or ATL08. Set acronym in the inputs')
-end
+zmod = T.h_mean(:); % save the median 'model' elevations (icesat-2 elevations)
+% zmodfit = T.Elevation_bestfit(:); % save the fitted 'model' elevations (icesat-2 elevations_bestfit)
+% zmodfit(isnan(zmod)) = NaN;
+zstd = T.h_sigma; %save the standard deviation of the icesat-2 elevation estimates
 easts = T.Easting(:); % pull out the easting values
 norths = T.Northing(:); % pull out the northings
 footwidth = 11; % approx. width of icesat2 shot footprint in meters
@@ -135,62 +128,56 @@ end_flag_off(unique_refs) = 1; end_flag_off(unique_refs(unique_refs~=1)-1) = 1; 
 % 
 % %% Gradient Decent 
 % tic
-GradDecentFunc = @(A)reference_elevations(zmod(ix_off,:), norths(ix_off,:), easts(ix_off,:), end_flag_off, default_length, elevations, slope, aspect, Ref, A); %create the handle to call the coregistration function
+ GradDecentFunc = @(A)reference_elevations(zmod(ix_off,:), norths(ix_off,:), easts(ix_off,:), end_flag_off, default_length, elevations, slope, aspect, Ref, A); %create the handle to call the coregistration function
+
 % [Abest,RMADbest] = fminsearch(GradDecentFunc,[0,0]); %initial horizontal offset estimate = [0,0] = [0 m East, 0 m North]
 % %save([abbrev,'-Abest.mat'],'Abest','-v7.3'); save([abbrev,'-RMADbest.mat'],'RMADbest','-v7.3'); %save offset for future
 % fprintf('x-offset = %5.2f m & y-offset = %5.2f m w/ RNMAD = %5.2f m \n',Abest(:,1),Abest(:,2),RMADbest); 
 % toc
 
-%% Grid of posible inputs to calculate initial guess
+%% Grid of possible inputs to calculate initial guess
 A1 = -5:5;
 
-% tic 
-% for i = 1:length(A1)
-%     tic
-%     parfor j = 1:length(A1)
-%         rmad_grid(i,j) = GradDecentFunc([A1(i),A1(j)]);
-%     end
-%     toc
-%     writematrix(rmad_grid,[abbrev,'_rmadGrid.csv'])
-% end
-% toc
-
-%%
-tic 
+tic
 for i = 1:length(A1)
+    tic
     for j = 1:length(A1)
-        rmad_grid2(i,j) = GradDecentFunc([A1(i),A1(j)]);
-    end
+        rmad_grid(i,j) = GradDecentFunc([A1(i),A1(j)]);
+    end    
+    fprintf('col %5.2f completed',j);
+    toc
+    writematrix(rmad_grid,[abbrev,'_rmadGrid.csv'])
 end
 toc
-%%
 figure(2);
-imagesc(rmad_grid2); 
-
-xticks(1:41); yticks(1:41); 
+im = imagesc(rmad_grid); 
+xticks(1:length(A1)); yticks(1:length(A1)); 
 xticklabels(A1); yticklabels(A1); 
-set(gca,'fontsize',18);
-colormap; c = colorbar; c.Label.String = 'NMAD (m)';
-ylabel('Northing Offset (m)'); xlabel('Easting Offset (m)');
+colorbar;
+waitfor(im); %close the figure to advance
 
 [row, col] = find(ismember(rmad_grid, min(rmad_grid(:))));
 Arow = A1(row); Acol = A1(col);
+
 writematrix([Arow,Acol],[abbrev,'_Ashift.csv'])
 
-% %% Test Gradient Decent from grid guess
-% tic
-% GradDecentFunc = @(A)reference_elevations(zmod(ix_off,:), norths(ix_off,:), easts(ix_off,:), end_flag_off, default_length, elevations, slope, aspect, Ref, A); %create the handle to call the coregistration function
-% [Agrid_best,RMADgrid_best] = fminsearch(GradDecentFunc,[Arow,Acol],optimset('PlotFcns',@optimplotfval)); %initial horizontal offset estimate = [0,0] = [0 m East, 0 m North]
-fprintf('x-offset = %5.2f m & y-offset = %5.2f m w/ RNMAD = %5.2f m \n',Acol,Arow,min(rmad_grid(:)));
-% toc
+% Test Gradient Decent from grid guess
+ tic
+ GradDecentFunc = @(A)reference_elevations(zmod(ix_off,:), norths(ix_off,:), easts(ix_off,:), end_flag_off, default_length, elevations, slope, aspect, Ref, A); %create the handle to call the coregistration function
+ [Agrid_best,RMADgrid_best] = fminsearch(GradDecentFunc,[Arow,Acol],optimset('PlotFcns',@optimplotfval)); %initial horizontal offset estimate = [0,0] = [0 m East, 0 m North]
+ fprintf('x-offset = %5.2f m & y-offset = %5.2f m w/ RNMAD = %5.2f m \n',Acol,Arow,min(rmad_grid(:)));
+ fprintf('Old RNMAD = %5.2f', rmad_grid(6,6));
+
+ toc
+%Arow = 0
+%Acol = 0
 
 
 %% Calculate corregistered reference elevations
 [~,E] = reference_elevations(zmod, norths, easts, end_flag, default_length, elevations, slope, aspect, Ref, [Arow,Acol]); %calculate ref elevations with the shift
-
+    
 %% save refelevation csv
-%writetable(E,outputname);
-
+writetable(E,outputname);
 
 
 
