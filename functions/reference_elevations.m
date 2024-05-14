@@ -48,8 +48,8 @@ for r=1:length(icesat2_elevations)
     yv = yc(r,[3:6 3]); % bounding box y vector
 
     % subset giant grid
-    ix = find(x <= (xc(r,1)+60) & x >= (xc(r,1)-60)); % x index for subgrid
-    iy = find(y <= (yc(r,1)+60) & y >= (xc(r,1)-60)); % y index for subgrid
+    ix = find(x <= (easts(r)+60) & x >= (easts(r)-60)); % x index for subgrid
+    iy = find(y <= (norths(r)+60) & y >= (norths(r)-60)); % y index for subgrid
     xsubgrid = xgrid(iy,ix);
     ysubgrid = ygrid(iy,ix);
     subelevations = elevations(iy,ix);
@@ -81,12 +81,26 @@ for r=1:length(icesat2_elevations)
     slope_std(r,:) = std(slopesin);
     aspect_mean(r,:) = nanmean(aspectsin);
     aspect_std(r,:) = std(aspectsin);
+
+    %fitted surface
+    if sum(sum(~isnan(elevationsin))) ~= 0
+        warning('off')
+        ix = find(~isnan(elevationsin));
+        p = fit([pointsinx(ix), pointsiny(ix)],elevationsin(ix),'poly11'); %fit linear polynomial
+        elevation_report_fitted(r,:) = p(easts(r),norths(r));
+        along_slope(r,:) = abs(atand((p(xv(:,1),yv(:,1))-p(xv(:,4),yv(:,4)))/default_length));
+        across_slope(r,:) = abs(atand((p(xv(:,1),yv(:,1))-p(xv(:,2),yv(:,2)))/footwidth));
+    else
+        elevation_report_fitted(r,:) = NaN;
+        along_slope(r,:) = NaN;
+        across_slope(r,:) = NaN;
+    end
 end
 %interpolated elevation
 elevation_report_interp = interp2(x,y,elevations,easts,norths);
 
 %compile table of elevations
-E = table(elevation_report_nw_mean,elevation_report_mean,elevation_report_interp,elevation_report_std,slope_mean,slope_std,aspect_mean,aspect_std);
+E = table(elevation_report_nw_mean,elevation_report_mean,elevation_report_interp,elevation_report_fitted,elevation_report_std,slope_mean,slope_std,along_slope,across_slope,aspect_mean,aspect_std);
 
 % calculate mean & NMAD
 Residuals = icesat2_elevations - elevation_report_nw_mean; % difference ICESat-2 and ref elevations
