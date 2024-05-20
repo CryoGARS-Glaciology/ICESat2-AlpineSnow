@@ -90,17 +90,21 @@ for r=1:length(icesat2_elevations)
         elevation_report_fitted(r,:) = p(easts(r),norths(r));
         along_slope(r,:) = abs(atand((p(xv(:,1),yv(:,1))-p(xv(:,4),yv(:,4)))/default_length));
         across_slope(r,:) = abs(atand((p(xv(:,1),yv(:,1))-p(xv(:,2),yv(:,2)))/footwidth));
+        x_slope = p((easts(r)+1),norths(r)) - p(easts(r),norths(r));
+        y_slope = p(easts(r),(norths(r)+1)) - p(easts(r),norths(r));
+        aspect_fit(r,:) = mod(270 - atan2d(y_slope,x_slope),360);
     else
         elevation_report_fitted(r,:) = NaN;
         along_slope(r,:) = NaN;
         across_slope(r,:) = NaN;
+        aspect_fit(r,:) = NaN;
     end
 end
 %interpolated elevation
 elevation_report_interp = interp2(x,y,elevations,easts,norths);
 
 %compile table of elevations
-E = table(elevation_report_nw_mean,elevation_report_mean,elevation_report_interp,elevation_report_fitted,elevation_report_std,slope_mean,slope_std,along_slope,across_slope,aspect_mean,aspect_std);
+E = table(elevation_report_nw_mean,elevation_report_mean,elevation_report_interp,elevation_report_fitted,elevation_report_std,slope_mean,slope_std,along_slope,across_slope,aspect_mean,aspect_std,aspect_fit);
 
 % calculate mean & NMAD
 Residuals = icesat2_elevations - elevation_report_nw_mean; % difference ICESat-2 and ref elevations
