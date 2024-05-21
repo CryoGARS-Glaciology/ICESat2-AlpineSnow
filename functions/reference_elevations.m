@@ -16,7 +16,7 @@ function [Rnmad,E] = reference_elevations(icesat2_elevations, norths, easts, end
 %           Rnmad = normalized median absolute difference of
 %               ICESat-2_elevations - elevations
 
-% last modified Feb 2024 Karina Zikan (karinazikan@u.boisestate.edu)
+% last modified May 2024 Karina Zikan (karinazikan@u.boisestate.edu)
 
 % Set ICESat-2 footwidth
 footwidth = 11; % approx. width of icesat2 shot footprint in meters
@@ -38,7 +38,7 @@ else
 end
 
 % calculates footprint corners
-[xc,yc,theta] = ICESat2_FootprintCorners([A(2)+norths],[A(1)+easts],default_length,end_flag);
+[xc,yc,theta] = ICESat2_FootprintCorners(A(2)+norths,A(1)+easts,default_length,end_flag);
 
 %% Calculate Reference Elevations, Slope, & Aspect
 for r=1:length(icesat2_elevations)

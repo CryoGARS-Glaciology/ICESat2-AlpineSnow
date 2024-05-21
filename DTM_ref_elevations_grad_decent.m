@@ -10,10 +10,11 @@
 %%% OUTPUTS:
 %%%     Reference_Elevations = csv datatable reporting the non-weighted
 %%%         mean, std, weighted mean, and fitted refference elevations,
-%%%         mean slope, std slope, mean aspect, std aspect
+%%%         mean slope, std slope, mean aspect, std aspect, along track
+%%%         slope, across track slope, fitted aspect
 %%%         
 %%%
-%%% Last updated: March 2024 by Karina Zikan
+%%% Last updated: May 2024 by Karina Zikan
 
 
 %% Inputs
@@ -35,7 +36,7 @@ DTM_aspect = 'RCEW_1m_WGS84UTM11_WGS84-aspect.tif';
 
 
 
-%csv (be sure the path ends in a /)
+%ICESat-2 csv (be sure the path ends in a /)
 csv_path = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/IS2_Data/';
 csv_name = 'RCEW-ICESat2-ATL06-atl08class-SnowCover.csv';
 
@@ -176,9 +177,8 @@ writematrix([Arow,Acol],[abbrev,'_Ashift.csv'])
 %% Calculate corregistered reference elevations
 [~,E] = reference_elevations(zmod, norths, easts, end_flag, default_length, elevations, slope, aspect, Ref, [Arow,Acol]); %calculate ref elevations with the shift
     
-%% save refelevation csv
+%% save ref elevation csv
 writetable(E,outputname);
-
 
 
 

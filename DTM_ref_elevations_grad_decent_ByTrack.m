@@ -10,10 +10,11 @@
 %%% OUTPUTS:
 %%%     Reference_Elevations = csv datatable reporting the non-weighted
 %%%         mean, std, weighted mean, and fitted refference elevations,
-%%%         mean slope, std slope, mean aspect, std aspect
+%%%         mean slope, std slope, mean aspect, std aspect, along track
+%%%         slope, across track slope, fitted aspect
 %%%
 %%%
-%%% Last updated: March 2024 by Karina Zikan
+%%% Last updated: May 2024 by Karina Zikan
 
 
 %% Inputs
@@ -34,8 +35,7 @@ DTM_slope = 'RCEW_1m_WGS84UTM11_WGS84-slope.tif';
 DTM_aspect = 'RCEW_1m_WGS84UTM11_WGS84-aspect.tif';
 
 
-
-%csv (be sure the path ends in a /)
+%ICESat-2 csv (be sure the path ends in a /)
 csv_path = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/IS2_Data/';
 csv_name = 'RCEW-ICESat2-ATL06-atl08class-SnowCover.csv';
 
@@ -46,10 +46,10 @@ abbrev = 'RCEW';
 acronym = 'ATL06'; %set to ATL06-20 for the 20m atl06 data
 
 %Set output name - MAKE SURE FILENAME SUFIX IS CORRECT!!!!!!!!!!!!!!!!!!!
-% file name formats: '-ref-elevations-grid-grad-decent'
-% '-atl08class-ref-elevations-grid-grad-decent'
-% '-20m-ref-elevations-grid-grad-decent'
-% '-atl08class-20m-ref-elevations-grid-grad-decent'
+% file name formats: '-ref-elevations-grid-search-ByTrack'
+% '-atl08class-ref-elevations-grid-search-ByTrack'
+% '-20m-ref-elevations-grid-search-ByTrack'
+% '-atl08class-20m-ref-elevations-grid-search-ByTrack'
 filename_sufix = '-atl08class-ref-elevations-grid-search-ByTrack';
 
 %% Set output name
@@ -134,52 +134,57 @@ End_E = [];
 for k = 1;length(unique_dates)
     fprintf('Track #%5.2f : \n',k)
     ix = find(dates_off == unique_dates(k));
-    % Gradient Decent
-    GridSearchFunc = @(A)reference_elevations(zmod_off(ix,:), norths_off(ix,:), easts_off(ix,:), end_flag_off(ix), default_length, elevations, slope, aspect, Ref, A); %create the handle to call the coregistration function
+    if isempty(ix)
+        ix_date = find(dates == unique_dates(k));
+        [~,E] = reference_elevations(zmod(ix_date), norths(ix_date), easts(ix_date), end_flag(ix_date), default_length, elevations, slope, aspect, Ref, [0,0]); %calculate ref elevations with the shift
+        date_shift(k,1) = unique_dates(k);
+        date_shift(k,2) = NaN;
+        date_shift(k,3) = NaN;
+    else
+        % Gradient Decent
+        GridSearchFunc = @(A)reference_elevations(zmod_off(ix,:), norths_off(ix,:), easts_off(ix,:), end_flag_off(ix), default_length, elevations, slope, aspect, Ref, A); %create the handle to call the coregistration function
 
-    A1 = -5:5;
+        A1 = -5:5;
 
-    tic
-    for i = 1:length(A1)
-        for j = 1:length(A1)
-            rmad_grid(i,j) = GridSearchFunc([A1(i),A1(j)]);
+        tic
+        for i = 1:length(A1)
+            for j = 1:length(A1)
+                rmad_grid(i,j) = GridSearchFunc([A1(i),A1(j)]);
+            end
+            writematrix(rmad_grid,[abbrev,'_rmadGrid.csv'])
         end
-        writematrix(rmad_grid,[abbrev,'_rmadGrid.csv'])
+        toc
+        figure;
+        im = imagesc(rmad_grid);
+        xticks(1:length(A1)); yticks(1:length(A1));
+        xticklabels(A1); yticklabels(A1);
+        colorbar;
+        %waitfor(im); %close the figure to advance
+
+        [row, col] = find(ismember(rmad_grid, min(rmad_grid(:))));
+        Arow = A1(row); Acol = A1(col);
+
+        % Test Gradient Decent from grid guess
+        tic
+        %GradDecentFunc = @(A)reference_elevations(zmod(ix_off,:), norths(ix_off,:), easts(ix_off,:), end_flag_off, default_length, elevations, slope, aspect, Ref, A); %create the handle to call the coregistration function
+        %[Agrid_best,RMADgrid_best] = fminsearch(GradDecentFunc,[Arow,Acol],optimset('PlotFcns',@optimplotfval)); %initial horizontal offset estimate = [0,0] = [0 m East, 0 m North]
+        fprintf('x-offset = %5.2f m & y-offset = %5.2f m w/ RNMAD = %5.2f m \n',Acol,Arow,min(rmad_grid(:)));
+        fprintf('Old RNMAD = %5.2f \n', rmad_grid(6,6));
+
+        toc
+
+        %% Calculate corregistered reference elevations
+        ix_date = find(dates == unique_dates(k));
+        [~,E] = reference_elevations(zmod(ix_date), norths(ix_date), easts(ix_date), end_flag(ix_date), default_length, elevations, slope, aspect, Ref, [Arow,Acol]); %calculate ref elevations with the shift
+        date_shift(k,1) = unique_dates(k);
+        date_shift(k,2) = Arow;
+        date_shift(k,3) = Acol;
     end
-    toc
-    figure;
-    im = imagesc(rmad_grid);
-    xticks(1:length(A1)); yticks(1:length(A1));
-    xticklabels(A1); yticklabels(A1);
-    colorbar;
-    %waitfor(im); %close the figure to advance
-
-    [row, col] = find(ismember(rmad_grid, min(rmad_grid(:))));
-    Arow = A1(row); Acol = A1(col);
-
-    writematrix([Arow,Acol],[abbrev,'_Ashift.csv'])
-
-    % Test Gradient Decent from grid guess
-    tic
-    %GradDecentFunc = @(A)reference_elevations(zmod(ix_off,:), norths(ix_off,:), easts(ix_off,:), end_flag_off, default_length, elevations, slope, aspect, Ref, A); %create the handle to call the coregistration function
-    %[Agrid_best,RMADgrid_best] = fminsearch(GradDecentFunc,[Arow,Acol],optimset('PlotFcns',@optimplotfval)); %initial horizontal offset estimate = [0,0] = [0 m East, 0 m North]
-    fprintf('x-offset = %5.2f m & y-offset = %5.2f m w/ RNMAD = %5.2f m \n',Acol,Arow,min(rmad_grid(:)));
-    fprintf('Old RNMAD = %5.2f \n', rmad_grid(6,6));
-
-    toc
-
-    %Arow = 0
-    %Acol = 0
-
-
-    %% Calculate corregistered reference elevations
-    ix = find(dates == unique_dates(k));
-    [~,E] = reference_elevations(zmod(ix), norths(ix), easts(ix), end_flag(ix), default_length, elevations, slope, aspect, Ref, [Arow,Acol]); %calculate ref elevations with the shift
     End_E = [End_E E];
 end
-%% save refelevation csv
-writetable(E,outputname);
-
+%% save ref elevation csv
+writetable(End_E,outputname);
+writetable(date_shift,[abbrev,'_DateShifts.csv']);
 
 
 
