@@ -4,7 +4,7 @@
 %%%     site = path to watershed outline
 %%%     
 %%% OUTPUTS:
-%%%     
+%%%     Map of idaho with site shapefile 
 %%%
 %%% Last updated: Nov 2023 by Karina Zikan
 
