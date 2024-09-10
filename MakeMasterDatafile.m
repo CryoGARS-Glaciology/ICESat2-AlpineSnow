@@ -5,8 +5,6 @@
 %%%     icesat2 = path to ICESat-2 file (output from batch_icesat2_terrain_parameter_comparison.m)
 %%%     ref_elevations = path to reference elevations file (output from DTM_reference_elevations_calculation.m)
 %%%     abbrev = site abriviation for file name
-%%%     icesat2 = path to icesat-2 datafile
-%%%     ref_elevations = path to reference elevation datafile
 %%%     outputname = output file name
 %%%
 %%% OUTPUTS:

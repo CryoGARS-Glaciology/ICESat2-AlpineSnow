@@ -22,26 +22,26 @@ clearvars; close all;
 addpath('./functions') 
 
 %DTM (be sure the path ends in a /)
-DTM_path = 'Sites/RCEW/DEMs/';
+DTM_path = 'Sites/MCS/DEMs/';
 
-DTM_name = 'RCEW_1m_WGS84UTM11_WGS84.tif';
+DTM_name = 'MCS_REFDEM_WGS84.tif';
 
 if contains(DTM_name,'.tif')
     DTM_date = '20120826'; %only need to change this if the DTM is a geotiff
 end
 % Slope
-DTM_slope = 'RCEW_1m_WGS84UTM11_WGS84-slope.tif';
+DTM_slope = 'MCS_REFDEM_WGS84-slope.tif';
 % Aspect
-DTM_aspect = 'RCEW_1m_WGS84UTM11_WGS84-aspect.tif';
+DTM_aspect = 'MCS_REFDEM_WGS84-aspect.tif';
 
 
 
 %ICESat-2 csv (be sure the path ends in a /)
-csv_path = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/IS2_Data/';
-csv_name = 'RCEW-ICESat2-ATL06-atl08class-SnowCover.csv';
+csv_path = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/MCS/IS2_Data/';
+csv_name = 'MCS-ICESat2-ATL06-atl08class-SnowCover.csv';
 
 %site abbreviation for file names
-abbrev = 'RCEW';
+abbrev = 'MCS';
 
 %ICESat-2 product acronym
 acronym = 'ATL06'; %set to ATL06-20 for the 20m atl06 data
@@ -164,8 +164,8 @@ writematrix([Arow,Acol],[abbrev,'_Ashift.csv'])
 
 % Test Gradient Decent from grid guess
  tic
- GradDecentFunc = @(A)reference_elevations(zmod(ix_off,:), norths(ix_off,:), easts(ix_off,:), end_flag_off, default_length, elevations, slope, aspect, Ref, A); %create the handle to call the coregistration function
- [Agrid_best,RMADgrid_best] = fminsearch(GradDecentFunc,[Arow,Acol],optimset('PlotFcns',@optimplotfval)); %initial horizontal offset estimate = [0,0] = [0 m East, 0 m North]
+ % GradDecentFunc = @(A)reference_elevations(zmod(ix_off,:), norths(ix_off,:), easts(ix_off,:), end_flag_off, default_length, elevations, slope, aspect, Ref, A); %create the handle to call the coregistration function
+ % [Agrid_best,RMADgrid_best] = fminsearch(GradDecentFunc,[Arow,Acol],optimset('PlotFcns',@optimplotfval)); %initial horizontal offset estimate = [0,0] = [0 m East, 0 m North]
  fprintf('x-offset = %5.2f m & y-offset = %5.2f m w/ RNMAD = %5.2f m \n',Acol,Arow,min(rmad_grid(:)));
  fprintf('Old RNMAD = %5.2f', rmad_grid(6,6));
 

@@ -29,7 +29,7 @@ abbrev = 'RCEW';
 shapefile = 'RCEW-outline_WGS84.shp';
 
 %filename
-IS2file = 'RCEW-ICESat2-ATL06sr-atl08class.csv';
+IS2file = 'RCEW-ICESat2-ATL06-atl08class.csv';
 acronym = 'ATL06';
 
 %Set output name
@@ -119,9 +119,9 @@ end
 
 %% add snow cover flag to table
 
-% IS2.snowcover = snowvector;
-% IS2.snowcoverdate = snowdatevector;
-% writetable(IS2,[folderpath 'IS2_Data/' outputname]);
+IS2.snowcover = snowvector;
+IS2.snowcoverdate = snowdatevector;
+writetable(IS2,[folderpath 'IS2_Data/' outputname]);
 
 
 

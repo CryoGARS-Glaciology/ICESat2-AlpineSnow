@@ -17,9 +17,9 @@ addpath(['./functions'])
 addpath(['/Users/karinazikan/Documents/cmocean'])
 
 %Folder path 
-folderpath = '/Users/karinazikan/Documents/GitHub/ICESat2-AlpineSnow/Sites/DCEW/';
+folderpath = '/Users/karinazikan/Documents/GitHub/ICESat2-AlpineSnow/Sites/MCS/';
 %site abbreviation for file names
-abbrev = 'DCEW';
+abbrev = 'MCS';
 
 % DEM path
 DTM_name = [folderpath 'DEMs/DryCreekBase1m_WGS84UTM11_DEM.tif'];

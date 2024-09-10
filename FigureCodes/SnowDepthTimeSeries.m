@@ -15,7 +15,7 @@ clearvars;
 %Folder path
 folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/';
 %site abbreviation for file names
-abbrev = 'RCEW';
+abbrev = 'Banner';
 
 %Turn slope correction off or on
 slope_correction = 1; % 0 = off, 1 = on
