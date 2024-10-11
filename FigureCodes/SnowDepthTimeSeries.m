@@ -13,9 +13,9 @@
 clearvars;
 
 %Folder path
-folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/';
+folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/MCS/';
 %site abbreviation for file names
-abbrev = 'Banner';
+abbrev = 'MCS';
 
 %Turn slope correction off or on
 slope_correction = 1; % 0 = off, 1 = on
@@ -86,9 +86,9 @@ ylabel('Snow Depth (m)')
 fig2 = figure(2); clf
 plot(snoteldepth_dategroup.time,snoteldepth_dategroup.Fun_SnowDepth, 'LineWidth',2,'Color',[0.9290, 0.6940, 0.1250]	)
 hold on
-scatter(snowdepth_dategroup.time,snowdepth_dategroup.Fun_residuals,'filled','MarkerFaceColor',[0, 0.4470, 0.7410])
+scatter(snowdepth_dategroup.time,snowdepth_dategroup.Fun_residuals,50,'filled','MarkerFaceColor',[0, 0.4470, 0.7410])
 legend('SNOTEL mean snow depth','ICESat-2 median snow depth')
-set(gca,'fontsize',16);
+set(gca,'fontsize',20);
 ylabel('Snow Depth (m)')
 
 fig3 = figure(3); clf

@@ -65,8 +65,10 @@ elseif acronym == 'A6-40'
     default_length = 40;
 elseif acronym == 'A6-20'
     default_length = 20;
+elseif acronym == 'A6-30'
+    default_length = 30;
 else
-    error('acronym must be ATL06 or or A6-40 or A6-20 or ATL08')
+    error('acronym must be ATL06 or A6-30 or A6-40 or A6-20 or ATL08')
 end
 footwidth = 11; % approx. width of icesat2 shot footprint in meters
 

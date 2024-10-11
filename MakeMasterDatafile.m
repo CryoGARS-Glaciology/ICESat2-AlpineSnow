@@ -16,16 +16,16 @@
 clearvars;
 
 %Folder path
-folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/DCEW/';
+folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/MCS/';
 %site abbreviation for file names
-abbrev = 'DCEW2';
+abbrev = 'MCS';
 
 %File paths
-icesat2 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06-atl08class-20m-SnowCover'];
-ref_elevations = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06-atl08class-20m-ref-elevations-grid-grad-decent'];
+icesat2 = [folderpath 'IS2_Data/A6-40/' abbrev '-ICESat2-A6-40-SnowCover'];
+ref_elevations = [folderpath 'IS2_Data/A6-40/' abbrev '-ICESat2-A6-40-ref-elevations-noCoreg'];
 
 %output file name
-outputname = 'ATL06-atl08class-20m-AllData';
+outputname = 'ATL06-A6-40-AllData-noCoreg';
 
 %set footprint length
 % footprint = 40;
@@ -91,6 +91,6 @@ Output_off = Output(Output.snowcover == 0,:);
 Output_on = Output(Output.snowcover == 1,:);
 
 %% Write output file
-writetable(Output,[folderpath 'IS2_Data/' outputname '.csv']);
-writetable(Output_off,[folderpath 'IS2_Data/' outputname '_off.csv']);
-writetable(Output_on,[folderpath 'IS2_Data/' outputname '_on.csv']);
+writetable(Output,[folderpath 'IS2_Data/A6-40/' outputname '.csv']);
+writetable(Output_off,[folderpath 'IS2_Data/A6-40/' outputname '_off.csv']);
+writetable(Output_on,[folderpath 'IS2_Data/A6-40/' outputname '_on.csv']);

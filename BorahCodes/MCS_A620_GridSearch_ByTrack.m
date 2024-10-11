@@ -13,38 +13,37 @@
 %%%         mean slope, std slope, mean aspect, std aspect
 %%%
 %%%
-%%% Last updated: Sept 2024 by Karina Zikan & Ellyn Enderlin
+%%% Last updated: March 2024 by Karina Zikan
+
+%
 
 %% Inputs
 clearvars; close all;
-addpath('/bsuhome/karinazikan/scratch/') % path to location of reference_elevations & ICESat2_FootprintCorners functions
+addpath('/bsuhome/karinazikan/scratch/')
 
 %DTM (be sure the path ends in a /)
-DTM_path = '/bsuhome/karinazikan/scratch/RCEW/'; %path to dtm, slope, & aspect maps
-DTM_name = 'RCEW_1m_WGS84UTM11_WGS84.tif';
+DTM_path = '/bsuhome/karinazikan/scratch/MCS/';
+DTM_name = 'MCS_REFDEM_WGS84.tif';
 if contains(DTM_name,'.tif')
     DTM_date = '20120826'; %only need to change this if the DTM is a geotiff
 end
 % Slope
-DTM_slope = 'RCEW_1m_WGS84UTM11_WGS84-slope.tif';
+DTM_slope = 'MCS_REFDEM_WGS84-slope.tif';
 % Aspect
-DTM_aspect = 'RCEW_1m_WGS84UTM11_WGS84-aspect.tif';
+DTM_aspect = 'MCS_REFDEM_WGS84-aspect.tif';
 
 %csv (be sure the path ends in a /)
-csv_path = '/bsuhome/karinazikan/scratch/RCEW/A6-40/'; %Path to ICESat-2 data with snow cover classification
-csv_name = 'RCEW-ICESat2-A6-40-SnowCover.csv';
+% csv_path = '/Users/alexiturriria/ICESat2-AlpineSnow/Sites/DCEW_2shape/IS2_Data/';
+csv_path = '/bsuhome/karinazikan/scratch/MCS/A6-20/';
+csv_name = 'MCS-ICESat2-A6-20-SnowCover.csv';
 
 %site abbreviation for file names
-abbrev = 'RCEW';
+abbrev = 'MCS';
 
 %ICESat-2 product acronym
-acronym = 'A6-40'; %for custom ATL06 with ATL08 classification set to A6-20 for 20m, A6-40 for 40m, 'A6-30' for 30m
+acronym = 'A6-20'; %for custom ATL06 with ATL08 classification set to A6-20 for 20m, A6-40 for 40m, 'A6-30' for 30m
 
 %Set output name - MAKE SURE FILENAME SUFIX IS CORRECT!!!!!!!!!!!!!!!!!!!
-% file name formats: '-ref-elevations-grid-grad-decent'
-%                    '-atl08class-ref-elevations-grid-grad-decent'
-%                    '-20m-ref-elevations-grid-grad-decent'
-%                    '-atl08class-20m-ref-elevations-grid-grad-decent'
 filename_sufix = '-ref-elevations-grid-search-ByTrack';
 
 %% Set output name
@@ -103,6 +102,8 @@ T = [T; file];
 
 %extract data from columns
 zmod = T.h_mean(:); % save the median 'model' elevations (icesat-2 elevations)
+% zmodfit = T.Elevation_bestfit(:); % save the fitted 'model' elevations (icesat-2 elevations_bestfit)
+% zmodfit(isnan(zmod)) = NaN;
 zstd = T.h_sigma; %save the standard deviation of the icesat-2 elevation estimates
 easts = T.Easting(:); % pull out the easting values
 norths = T.Northing(:); % pull out the northings
@@ -126,9 +127,6 @@ for k = 1:length(unique_dates)
 end
 %resave icesat2
 writetable(T,icesat2);
-%find edited unique dates
-clear unique_*;
-[unique_dates,~] = unique(dates);
 
 %% Snow free data
 ix_off = find(T.snowcover == 0);
@@ -145,12 +143,12 @@ end_flag_off(unique_refs) = 1; end_flag_off(unique_refs(unique_refs~=1)-1) = 1; 
 
 %% Grid of possible inputs to calculate initial guess
 % track_fig = figure; set(gcf,'position',[50 50 1000 600]); sub1 = subplot(1,2,1); sub2 = subplot(1,2,2);
-fprintf('Number of unique dates = %i \n',length(unique_dates))
+fprintf('Number of dates with snow-free observations = %i \n',length(unique_dates_off))
 for k = 1:length(unique_dates)
     fprintf('Track #%i : \n',k);
 
     %if starting not at 1, load the existing coregistration offset file
-    if k ~=1 && isfile([abbrev,'_',acronym,'-ByTrack-Ashift.csv'])
+    if k ~=1 && exist([abbrev,'_',acronym,'-ByTrack-Ashift.csv'])==2
         fprintf('loading existing files \n');
         %read in the offset
         Adata = readmatrix([abbrev,'_',acronym,'-ByTrack-Ashift.csv']);
@@ -204,7 +202,8 @@ for k = 1:length(unique_dates)
                 clear track_flag track_norths track_easts track_dirs;
             end
             sat_dir(k) = nanmedian(track_dir); clear track_dir;
-
+            %     figure(track_fig);
+            %     subplot(sub1); plot(easts_off(ix),norths_off(ix),'xk'); hold on;
 
             %save the best coregistration shifts to file
             [row, col] = find(ismember(rmad_grid, min(rmad_grid(:))));
@@ -219,6 +218,8 @@ for k = 1:length(unique_dates)
 
             % Test Gradient Decent from grid guess
             tic
+            %GradDecentFunc = @(A)reference_elevations(zmod_off(ix,:), norths_off(ix,:), easts_off(ix,:), end_flag_off(ix), default_length, elevations, slope, aspect, Ref, A); %create the handle to call the coregistration function
+            %[Agrid_best,RMADgrid_best] = fminsearch(GradDecentFunc,[Arow,Acol],optimset('PlotFcns',@optimplotfval)); %initial horizontal offset estimate = [0,0] = [0 m East, 0 m North]
             fprintf('x-offset = %5.2f m & y-offset = %5.2f m w/ RNMAD = %5.2f m \n',A1(col),A1(row),min(rmad_grid(:)));
             fprintf('Old RNMAD = %5.2f \n', rmad_grid(6,6));
             clear ix;
@@ -243,6 +244,7 @@ for k = 1:length(unique_dates)
             for j = 1:6
                 track_flag = find(tracks(ix)==j);
                 track_norths = norths(ix(track_flag)); track_easts = easts(ix(track_flag));
+                %         track_dirs = atand(track_norths./track_easts);
                 track_dirs = (track_norths(2:end)-track_norths(1:end-1))./(track_easts(2:end)-track_easts(1:end-1));
                 track_dir(j) = nanmedian(track_dirs);
                 clear track_flag track_norths track_easts track_dirs;
@@ -277,6 +279,7 @@ for k = 1:length(unique_dates)
         for j = 1:6
             track_flag = find(tracks(ix)==j);
             track_norths = norths(ix(track_flag)); track_easts = easts(ix(track_flag));
+            %         track_dirs = atand(track_norths./track_easts);
             track_dirs = (track_norths(2:end)-track_norths(1:end-1))./(track_easts(2:end)-track_easts(1:end-1));
             track_dir(j) = nanmedian(track_dirs);
             clear track_flag track_norths track_easts track_dirs;
@@ -301,5 +304,6 @@ for k = 1:length(unique_dates)
     end
     clear YYYYMMDD row col;
 end
-
+% figure(track_fig);
+% subplot(sub2); histogram(sat_dir);
 

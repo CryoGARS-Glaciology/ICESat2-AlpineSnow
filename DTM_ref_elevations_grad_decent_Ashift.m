@@ -21,26 +21,26 @@ clearvars; close all;
 addpath('./functions') 
 
 %DTM (be sure the path ends in a /)
-DTM_path = 'Sites/RCEW/DEMs/';
+DTM_path = 'Sites/MCS/DEMs/';
 
-DTM_name = 'RCEW_1m_WGS84UTM11_WGS84.tif';
+DTM_name = 'MCS_REFDEM_WGS84.tif';
 
 if contains(DTM_name,'.tif')
     DTM_date = '20120826'; %only need to change this if the DTM is a geotiff
 end
 % Slope
-DTM_slope = 'RCEW_1m_WGS84UTM11_WGS84-slope.tif';
+DTM_slope = 'MCS_REFDEM_WGS84-slope.tif';
 % Aspect
-DTM_aspect = 'RCEW_1m_WGS84UTM11_WGS84-aspect.tif';
+DTM_aspect = 'MCS_REFDEM_WGS84-aspect.tif';
 
-Ashift = 'RCEW_Ashift.csv';
+Ashift = 'MCS_Ashift.csv';
 
 %csv (be sure the path ends in a /)
-csv_path = '/Users/karinazikan/Documents/GitHub/ICESat2-AlpineSnow/Sites/RCEW/IS2_Data/';
-csv_name = 'RCEW-ICESat2-ATL06-SnowCover.csv';
+csv_path = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/MCS/IS2_Data/A6-40/';
+csv_name = 'MCS-ICESat2-A6-40-SnowCover.csv';
 
 %site abbreviation for file names
-abbrev = 'RCEW';
+abbrev = 'MCS';
 
 %ICESat-2 product acronym
 acronym = 'ATL06'; %set to ATL06-20 for the 20m atl06 data
@@ -50,10 +50,10 @@ acronym = 'ATL06'; %set to ATL06-20 for the 20m atl06 data
     % '-atl08class-ref-elevations-grid-grad-decent' 
     % '-20m-ref-elevations-grid-grad-decent' 
     % '-atl08class-20m-ref-elevations-grid-grad-decent' 
-filename_sufix = '-atl08class-ref-elevations-grid-grad-decent';
+filename_sufix = 'A6-40-ref-elevations-noCoreg';
 
 %% Set output name
-outputname = [abbrev,'-ICESat2-',acronym, filename_sufix, '.csv'];
+outputname = [abbrev,'-ICESat2-', filename_sufix, '.csv'];
 
 %% Read in files
 % Set default_length
@@ -118,7 +118,8 @@ easts = T.Easting(:); % pull out the easting values
 norths = T.Northing(:); % pull out the northings
 footwidth = 11; % approx. width of icesat2 shot footprint in meters
 
-Ashift = readmatrix(Ashift);
+%Ashift = readmatrix(Ashift);
+Ashift = [0,0];
 
 %% Snow free data
 %identify the ends of each transect and flag them so that neighboring

@@ -34,20 +34,20 @@ DTM_aspect = 'RCEW_1m_WGS84UTM11_WGS84-aspect.tif';
 
 %csv (be sure the path ends in a /)
 % csv_path = '/Users/alexiturriria/ICESat2-AlpineSnow/Sites/DCEW_2shape/IS2_Data/';
-csv_path = '/bsuhome/karinazikan/scratch/RCEW/A6-40/';
-csv_name = 'RCEW-ICESat2-A6-40-SnowCover.csv';
+csv_path = '/bsuhome/karinazikan/scratch/RCEW/A6-20/';
+csv_name = 'RCEW-ICESat2-A6-20-SnowCover.csv';
 
 %site abbreviation for file names
 abbrev = 'RCEW';
 
 %ICESat-2 product acronym
-acronym = 'A6-40'; %for custom ATL06 with ATL08 classification set to A6-20 for 20m, A6-40 for 40m
+acronym = 'A6-20'; %for custom ATL06 with ATL08 classification set to A6-20 for 20m, A6-40 for 40m, 'A6-30' for 30m
 
 %Set output name - MAKE SURE FILENAME SUFIX IS CORRECT!!!!!!!!!!!!!!!!!!!
 % file name formats: '-ref-elevations-grid-grad-decent'
-% '-atl08class-ref-elevations-grid-grad-decent'
-% '-20m-ref-elevations-grid-grad-decent'
-% '-atl08class-20m-ref-elevations-grid-grad-decent'
+%                    '-atl08class-ref-elevations-grid-grad-decent'
+%                    '-20m-ref-elevations-grid-grad-decent'
+%                    '-atl08class-20m-ref-elevations-grid-grad-decent'
 filename_sufix = '-ref-elevations-grid-search-ByTrack';
 
 %% Set output name
@@ -63,6 +63,8 @@ elseif acronym == 'A6-40'
     default_length = 40;
 elseif acronym == 'A6-20'
     default_length = 20;
+elseif acronym == 'A6-30'
+    default_length = 30;
 else
     error('acronym must be ATL06 or or A6-40 or A6-20 or ATL08')
 end

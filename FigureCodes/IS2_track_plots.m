@@ -12,7 +12,7 @@
 
 %% Inputs
 clearvars;
-addpath(['./functions'])
+addpath(['/Users/karinazikan/Documents/ICESat2-AlpineSnow/functions'])
 addpath(['/Users/karinazikan/Documents/cmocean'])
 
 %Folder path
@@ -31,7 +31,7 @@ ref_elevations_atl08 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL08-ref-elevat
 icesat2_atl06 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr'];
 ref_elevations_atl06 = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-params'];
 
-icesat2_atl06_class = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-atl08class'];
+icesat2_atl06_class = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06-atl08class'];
 ref_elevations_atl06_class = [folderpath 'IS2_Data/' abbrev '-ICESat2-ATL06sr-atl08class-params'];
 
 %set colors

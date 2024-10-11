@@ -15,15 +15,15 @@ addpath(['/Users/karinazikan/Documents/functions'])
 addpath(['/Users/karinazikan/Documents/cmocean'])
 
 %Folder path
-folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/Banner/';
+folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/';
 %site abbreviation for file names
-abbrev = 'Banner';
+abbrev = 'RCEW';
 
 %Turn slope correction off or on
 slope_correction = 1; % 0 = off, 1 = on
 
 %% Load data
-filepath = [folderpath 'IS2_Data/ATL06-atl08class-AllData.csv'];
+filepath = [folderpath 'IS2_Data/A6-40/ATL06-A6-40-AllData-noCoreg.csv'];
 df = readtable(filepath);
 
 %% Grouped data plot - elevations
@@ -157,7 +157,7 @@ ylabels(1:3:end) = NaN;
 ylabels(2:3:end) = NaN;
 
 if slope_correction == 1
-    fig1 = figure(1); clf
+    fig1 = figure(9); clf
 else
     fig1 = figure(4); clf
 end

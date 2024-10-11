@@ -57,7 +57,7 @@ for j = 1:length(site_abbrevs)
 
 end
 
-%% Filter out slopes above 30 degrees
+% % Filter out slopes above 30 degrees
 % for j = 1:length(site_abbrevs)
 %     if slope_correction == 0
 %         df_on{j}.elev_residuals_vertcoreg(df_on{j}.slope_mean > 20) = NaN;
