@@ -15,7 +15,7 @@ addpath(['/Users/karinazikan/Documents/ICESat2-AlpineSnow/functions'])
 addpath(['/Users/karinazikan/Documents/cmocean'])
 
 %site abbreviation for file names
-abbrev = 'MCS';
+abbrev = 'DCEW';
 %Product abbreviation for files
 prod_abbrev = 'A6-40';
 %Folder path
@@ -38,9 +38,9 @@ filepath = [folderpath 'IS2_Data/' prod_abbrev '/ATL06-' prod_abbrev '-AllData-n
 df_noCoreg_on = readtable(filepath);
 filepath = [folderpath 'IS2_Data/' prod_abbrev '/ATL06-' prod_abbrev '-AllData-noCoreg_off.csv'];
 df_noCoreg_off = readtable(filepath);
-filepath = [folderpath 'IS2_Data/' prod_abbrev '/ATL06-' prod_abbrev '-AllData_on.csv'];
+filepath = [folderpath 'IS2_Data/' prod_abbrev '/ATL06-' prod_abbrev '-AllData-Agg_on.csv'];
 df_on = readtable(filepath);
-filepath = [folderpath 'IS2_Data/' prod_abbrev '/ATL06-' prod_abbrev '-AllData_off.csv'];
+filepath = [folderpath 'IS2_Data/' prod_abbrev '/ATL06-' prod_abbrev '-AllData-Agg_off.csv'];
 df_off = readtable(filepath);
 filepath = [folderpath 'IS2_Data/' prod_abbrev '/ATL06-' prod_abbrev '-AllData-ByTrack_on.csv'];
 df_ByTrack_on = readtable(filepath);
@@ -95,7 +95,7 @@ xbounds = [-4 4];
 % Not vertically coregistered - snow free
 figure(1); clf; hold on
 pd = fitdist(df_noCoreg_off.elev_residuals,'kernel','Kernel','normal');
-fplot(@(x) pdf(pd,x),[-10 8], 'Linewidth', 3, 'Color', colors{4}(3,:));
+fplot(@(x) pdf(pd,x),[-10 8], 'Linewidth', 4, 'Color', colors{4}(3,:));
 pd = fitdist(df_off.elev_residuals,'kernel','Kernel','normal');
 fplot(@(x) pdf(pd,x),[-10 8], 'Linewidth', 3, 'Color', colors{1}(3,:));
 pd = fitdist(df_ByTrack_off.elev_residuals,'kernel','Kernel','normal');

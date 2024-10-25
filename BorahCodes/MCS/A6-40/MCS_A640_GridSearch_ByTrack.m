@@ -142,7 +142,7 @@ end_flag_off(unique_refs) = 1; end_flag_off(unique_refs(unique_refs~=1)-1) = 1; 
 %% Grid of possible inputs to calculate initial guess
 % track_fig = figure; set(gcf,'position',[50 50 1000 600]); sub1 = subplot(1,2,1); sub2 = subplot(1,2,2);
 fprintf('Number of unique dates = %i \n',length(unique_dates))
-for k = 16:length(unique_dates)
+for k = 1:length(unique_dates)
     fprintf('Track #%i : \n',k);
 
     %if starting not at 1, load the existing coregistration offset file

@@ -1,4 +1,4 @@
-%%% SPECIFIED INPUTS:
+%% SPECIFIED INPUTS:
 %%%     DTM_path = path to the reference DTM on your computer
 %%%     DTM_name = DTM file name
 %%%     DTM_slope = Slope map file name
@@ -10,46 +10,42 @@
 %%% OUTPUTS:
 %%%     Reference_Elevations = csv datatable reporting the non-weighted
 %%%         mean, std, weighted mean, and fitted refference elevations,
-%%%         mean slope, std slope, mean aspect, std aspect, along track
-%%%         slope, across track slope, fitted aspect
+%%%         mean slope, std slope, mean aspect, std aspect
 %%%
 %%%
-%%% Last updated: May 2024 by Karina Zikan
-
+%%% Last updated: Sept 2024 by Karina Zikan & Ellyn Enderlin
 
 %% Inputs
 clearvars; close all;
-addpath('./functions')
+addpath('/bsuhome/karinazikan/scratch/') % path to location of reference_elevations & ICESat2_FootprintCorners functions
 
 %DTM (be sure the path ends in a /)
-DTM_path = 'Sites/DCEW/DEMs/';
-
-DTM_name = 'DryCreekBase1m_WGS84UTM11_DEM.tif';
+DTM_path = '/bsuhome/karinazikan/scratch/Banner/'; %path to dtm, slope, & aspect maps
+DTM_name = 'Banner_Bare_Earth_DEMs_mosaic_UTM11WGS84.tif';
 if contains(DTM_name,'.tif')
     DTM_date = '20120826'; %only need to change this if the DTM is a geotiff
 end
 % Slope
-DTM_slope = 'DryCreekBase1m_WGS84UTM11-slope-002.tif';
+DTM_slope = 'Banner_Bare_Earth_DEMs_mosaic_UTM11WGS84-slope.tif';
 % Aspect
-DTM_aspect = 'DryCreekBase1m_WGS84UTM11-aspect-001.tif';
+DTM_aspect = 'Banner_Bare_Earth_DEMs_mosaic_UTM11WGS84-aspect.tif';
 
-
-%ICESat-2 csv (be sure the path ends in a /)
-csv_path = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/DCEW/IS2_Data/A6-40/';
-csv_name = 'DCEW-ICESat2-A6-40-SnowCover.csv';
+%csv (be sure the path ends in a /)
+csv_path = '/bsuhome/karinazikan/scratch/Banner/A6-40/'; %Path to ICESat-2 data with snow cover classification
+csv_name = 'Banner-ICESat2-A6-40-SnowCover.csv';
 
 %site abbreviation for file names
-abbrev = 'DCEW';
+abbrev = 'Banner';
 
 %ICESat-2 product acronym
-acronym = 'ATL06'; %set to ATL06-20 for the 20m atl06 data
+acronym = 'A6-40'; %for custom ATL06 with ATL08 classification set to A6-20 for 20m, A6-40 for 40m, 'A6-30' for 30m
 
 %Set output name - MAKE SURE FILENAME SUFIX IS CORRECT!!!!!!!!!!!!!!!!!!!
-% file name formats: '-ref-elevations-grid-search-ByTrack'
-% '-atl08class-ref-elevations-grid-search-ByTrack'
-% '-20m-ref-elevations-grid-search-ByTrack'
-% '-atl08class-20m-ref-elevations-grid-search-ByTrack'
-filename_sufix = '-atl08class-ref-elevations-grid-search-ByTrack';
+% file name formats: '-ref-elevations-grid-grad-decent'
+%                    '-atl08class-ref-elevations-grid-grad-decent'
+%                    '-20m-ref-elevations-grid-grad-decent'
+%                    '-atl08class-20m-ref-elevations-grid-grad-decent'
+filename_sufix = '-ref-elevations-grid-search-ByTrack';
 
 %% Set output name
 outputname = [abbrev,'-ICESat2-',acronym, filename_sufix, '.csv'];
@@ -67,7 +63,7 @@ elseif acronym == 'A6-20'
 elseif acronym == 'A6-30'
     default_length = 30;
 else
-    error('acronym must be ATL06 or A6-30 or A6-40 or A6-20 or ATL08')
+    error('acronym must be ATL06 or or A6-40 or A6-20 or ATL08')
 end
 footwidth = 11; % approx. width of icesat2 shot footprint in meters
 
@@ -305,10 +301,5 @@ for k = 1:length(unique_dates)
     end
     clear YYYYMMDD row col;
 end
-
-
-
-
-
 
 

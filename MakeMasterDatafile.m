@@ -16,9 +16,9 @@
 clearvars;
 
 %Folder path
-folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/MCS/';
+folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/DCEW/';
 %site abbreviation for file names
-abbrev = 'MCS';
+abbrev = 'DCEW';
 
 %File paths
 icesat2 = [folderpath 'IS2_Data/A6-40/' abbrev '-ICESat2-A6-40-SnowCover'];

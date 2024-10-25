@@ -20,7 +20,7 @@ folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/';
 abbrev = 'RCEW';
 
 %Turn slope correction off or on
-slope_correction = 1; % 0 = off, 1 = on
+slope_correction = 0; % 0 = off, 1 = on
 
 %% Load data
 filepath = [folderpath 'IS2_Data/A6-40/ATL06-A6-40-AllData-noCoreg.csv'];

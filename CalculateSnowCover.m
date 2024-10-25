@@ -29,8 +29,8 @@ abbrev = 'RCEW';
 shapefile = 'RCEW-outline_WGS84.shp';
 
 %filename
-IS2file = 'RCEW-ICESat2-A6-30.csv';
-acronym = 'A6-30';
+IS2file = 'RCEW-ICESat2-A6-40.csv';
+acronym = 'A6-40';
 
 %Set output name
 outputname = [abbrev,'-ICESat2-',acronym,'-SnowCover.csv'];
@@ -52,7 +52,7 @@ SnowCoverfiles = dir([SnowCoverPath '/*.tif']);
 % SnowCoverdates = char(SnowCoverfiles.name);
 % SnowCoverdates = SnowCoverdates(:,[1:8]);
 SnowCoverdates = char(SnowCoverfiles.name);
-SnowCoverdates = SnowCoverdates(:,[1:8]);
+SnowCoverdates = SnowCoverdates(:,[1:4,6:7,9:10]);
 SnowCoverdates = str2num(SnowCoverdates);
 
 %% calculate snow cover

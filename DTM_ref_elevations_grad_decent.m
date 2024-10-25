@@ -19,29 +19,27 @@
 
 %% Inputs
 clearvars; close all;
-addpath('./functions') 
+addpath('./functions')
 
 %DTM (be sure the path ends in a /)
-DTM_path = 'Sites/MCS/DEMs/';
+DTM_path = 'Sites/DCEW/DEMs/';
 
-DTM_name = 'MCS_REFDEM_WGS84.tif';
-
+DTM_name = 'DryCreekBase1m_WGS84UTM11_DEM.tif';
 if contains(DTM_name,'.tif')
     DTM_date = '20120826'; %only need to change this if the DTM is a geotiff
 end
 % Slope
-DTM_slope = 'MCS_REFDEM_WGS84-slope.tif';
+DTM_slope = 'DryCreekBase1m_WGS84UTM11-slope-002.tif';
 % Aspect
-DTM_aspect = 'MCS_REFDEM_WGS84-aspect.tif';
-
+DTM_aspect = 'DryCreekBase1m_WGS84UTM11-aspect-001.tif';
 
 
 %ICESat-2 csv (be sure the path ends in a /)
-csv_path = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/MCS/IS2_Data/';
-csv_name = 'MCS-ICESat2-ATL06-atl08class-SnowCover.csv';
+csv_path = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/DCEW/IS2_Data/A6-40/';
+csv_name = 'DCEW-ICESat2-A6-40-SnowCover.csv';
 
 %site abbreviation for file names
-abbrev = 'MCS';
+abbrev = 'DCEW';
 
 %ICESat-2 product acronym
 acronym = 'ATL06'; %set to ATL06-20 for the 20m atl06 data
@@ -51,7 +49,7 @@ acronym = 'ATL06'; %set to ATL06-20 for the 20m atl06 data
     % '-atl08class-ref-elevations-grid-grad-decent' 
     % '-20m-ref-elevations-grid-grad-decent' 
     % '-atl08class-20m-ref-elevations-grid-grad-decent' 
-filename_sufix = '-atl08class-ref-elevations-grid-grad-decent';
+filename_sufix = '-atl08class-ref-elevations-grid-search-agg';
 
 %% Set output name
 outputname = [abbrev,'-ICESat2-',acronym, filename_sufix, '.csv'];

@@ -18,24 +18,25 @@
 %% Inputs
 clearvars; close all;
 addpath('/bsuhome/karinazikan/scratch/') % path to location of reference_elevations & ICESat2_FootprintCorners functions
-
+%set up the grid size
+A1 = -8:8;
 %DTM (be sure the path ends in a /)
-DTM_path = '/bsuhome/karinazikan/scratch/RCEW/'; %path to dtm, slope, & aspect maps
-DTM_name = 'RCEW_1m_WGS84UTM11_WGS84.tif';
+DTM_path = '/bsuhome/karinazikan/scratch/DCEW/'; %path to dtm, slope, & aspect maps
+DTM_name = 'DryCreekBase1m_WGS84UTM11_DEM.tif';
 if contains(DTM_name,'.tif')
     DTM_date = '20120826'; %only need to change this if the DTM is a geotiff
 end
 % Slope
-DTM_slope = 'RCEW_1m_WGS84UTM11_WGS84-slope.tif';
+DTM_slope = 'DryCreekBase1m_WGS84UTM11-slope-002.tif';
 % Aspect
-DTM_aspect = 'RCEW_1m_WGS84UTM11_WGS84-aspect.tif';
+DTM_aspect = 'DryCreekBase1m_WGS84UTM11-aspect-001.tif';
 
 %csv (be sure the path ends in a /)
-csv_path = '/bsuhome/karinazikan/scratch/RCEW/A6-40/'; %Path to ICESat-2 data with snow cover classification
-csv_name = 'RCEW-ICESat2-A6-40-SnowCover.csv';
+csv_path = '/bsuhome/karinazikan/scratch/DCEW/A6-40/'; %Path to ICESat-2 data with snow cover classification
+csv_name = 'DCEW-ICESat2-A6-40-SnowCover.csv';
 
 %site abbreviation for file names
-abbrev = 'RCEW';
+abbrev = 'DCEW';
 
 %ICESat-2 product acronym
 acronym = 'A6-40'; %for custom ATL06 with ATL08 classification set to A6-20 for 20m, A6-40 for 40m, 'A6-30' for 30m
@@ -166,7 +167,7 @@ for k = 1:length(unique_dates)
     ix = find(dates == unique_dates(k));
     ix_off = find(dates_off == unique_dates(k));
     % make accending and decending datasets
-    if track_dir == 0
+    if sat_dir == 0
         zmod_acc = [zmod_acc; zmod(ix)];
         norths_acc = [norths_acc; norths(ix)];
         easts_acc = [easts_acc; easts(ix)];
@@ -175,7 +176,7 @@ for k = 1:length(unique_dates)
         norths_acc_off = [easts_acc_off; easts_off(ix_off)];
         easts_acc_off = [end_flag_acc_off; end_flag_off(ix_off)];
         end_flag_acc_off = [end_flag_acc_off; end_flag_off(ix_off)];
-    elseif track_dir == 1
+    elseif sat_dir == 1
         zmod_dec = [zmod_dec; zmod(ix)];
         norths_dec = [norths_dec; norths(ix)];
         easts_dec = [easts_dec; easts(ix)];

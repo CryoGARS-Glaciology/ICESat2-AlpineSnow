@@ -90,9 +90,9 @@ for r=1:length(icesat2_elevations)
         elevation_report_fitted(r,:) = p(easts(r),norths(r));
         along_slope(r,:) = abs(atand((p(xv(:,1),yv(:,1))-p(xv(:,4),yv(:,4)))/default_length));
         across_slope(r,:) = abs(atand((p(xv(:,1),yv(:,1))-p(xv(:,2),yv(:,2)))/footwidth));
-        x_slope = p((easts(r)+1),norths(r)) - p(easts(r),norths(r));
-        y_slope = p(easts(r),(norths(r)+1)) - p(easts(r),norths(r));
-        aspect_fit(r,:) = mod(270 - atan2d(y_slope,x_slope),360);
+        x_diff = p((easts(r)+1),norths(r)) - p(easts(r),norths(r));
+        y_diff = p(easts(r),(norths(r)+1)) - p(easts(r),norths(r));
+        aspect_fit(r,:) = mod(270 - atan2d(y_diff,x_diff),360);
     else
         elevation_report_fitted(r,:) = NaN;
         along_slope(r,:) = NaN;
