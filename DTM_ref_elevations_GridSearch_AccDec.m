@@ -1,45 +1,29 @@
-%% SPECIFIED INPUTS:
-%%%     DTM_path = path to the reference DTM on your computer
-%%%     DTM_name = DTM file name
-%%%     DTM_slope = Slope map file name
-%%%     DTM_aspect = Aspect map file name
-%%%     csv_path = path to the ICESat-2 datafiles on your computer
-%%%     csv_name = name of ICESat-2 csv file
-%%%     abbrev = site abriviation for file name
-%%%     acronym = ICESat-2 product acronym
-%%% OUTPUTS:
-%%%     Reference_Elevations = csv datatable reporting the non-weighted
-%%%         mean, std, weighted mean, and fitted refference elevations,
-%%%         mean slope, std slope, mean aspect, std aspect
-%%%
-%%%
-%%% Last updated: Sept 2024 by Karina Zikan & Ellyn Enderlin
-
 %% Inputs
 clearvars; close all;
-addpath('/bsuhome/karinazikan/scratch/') % path to location of reference_elevations & ICESat2_FootprintCorners functions
-%set up the grid size
-A1 = -8:8;
+addpath('./functions')
+
 %DTM (be sure the path ends in a /)
-DTM_path = '/bsuhome/karinazikan/scratch/DCEW/'; %path to dtm, slope, & aspect maps
-DTM_name = 'DryCreekBase1m_WGS84UTM11_DEM.tif';
+DTM_path = 'Sites/RCEW/DEMs/';
+
+DTM_name = 'RCEW_1m_WGS84UTM11_WGS84.tif';
 if contains(DTM_name,'.tif')
     DTM_date = '20120826'; %only need to change this if the DTM is a geotiff
 end
 % Slope
-DTM_slope = 'DryCreekBase1m_WGS84UTM11-slope-002.tif';
+DTM_slope = 'RCEW_1m_WGS84UTM11_WGS84-slope.tif';
 % Aspect
-DTM_aspect = 'DryCreekBase1m_WGS84UTM11-aspect-001.tif';
+DTM_aspect = 'RCEW_1m_WGS84UTM11_WGS84-aspect.tif';
 
-%csv (be sure the path ends in a /)
-csv_path = '/bsuhome/karinazikan/scratch/DCEW/A6-40/'; %Path to ICESat-2 data with snow cover classification
-csv_name = 'DCEW-ICESat2-A6-40-SnowCover.csv';
+
+%ICESat-2 csv (be sure the path ends in a /)
+csv_path = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/IS2_Data/A6-40/';
+csv_name = 'RCEW-ICESat2-A6-40-SnowCover.csv';
 
 %site abbreviation for file names
-abbrev = 'DCEW';
+abbrev = 'RCEW';
 
 %ICESat-2 product acronym
-acronym = 'A6-40'; %for custom ATL06 with ATL08 classification set to A6-20 for 20m, A6-40 for 40m, 'A6-30' for 30m
+acronym = 'ATL06'; %set to ATL06-20 for the 20m atl06 data
 
 %Set output name - MAKE SURE FILENAME SUFIX IS CORRECT!!!!!!!!!!!!!!!!!!!
 % file name formats: '-ref-elevations-grid-grad-decent'
@@ -195,6 +179,8 @@ disp('Accending Coregistration:')
 % create the grid search function
 GridSearchFunc = @(A)reference_elevations(zmod_acc_off, norths_acc_off, easts_acc_off, end_flag_acc_off, default_length, elevations, slope, aspect, Ref, A); %create the handle to call the coregistration function
 
+%set up the grid size
+A1 = -8:8;
 %run the grid search
 tic
 for i = 1:length(A1)
@@ -215,7 +201,7 @@ toc
 [~,E] = reference_elevations(zmod_acc, norths_acc, easts_acc, end_flag_acc, default_length, elevations, slope, aspect, Ref, [A1(row),A1(col)]); %calculate ref elevations with the shift
 
 % save refelevation csv
-writetable(E,outputname_acc);
+writetable(E,outputname_acc); clear E;
 
 % Decending coregistration
 disp('Decending Coregistration:')

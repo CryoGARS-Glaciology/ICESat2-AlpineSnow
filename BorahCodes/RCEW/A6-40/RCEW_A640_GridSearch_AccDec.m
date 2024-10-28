@@ -166,7 +166,7 @@ for k = 1:length(unique_dates)
     ix = find(dates == unique_dates(k));
     ix_off = find(dates_off == unique_dates(k));
     % make accending and decending datasets
-    if sat_dir == 0
+    if sat_dir(k) < 0
         zmod_acc = [zmod_acc; zmod(ix)];
         norths_acc = [norths_acc; norths(ix)];
         easts_acc = [easts_acc; easts(ix)];
@@ -175,7 +175,7 @@ for k = 1:length(unique_dates)
         norths_acc_off = [easts_acc_off; easts_off(ix_off)];
         easts_acc_off = [end_flag_acc_off; end_flag_off(ix_off)];
         end_flag_acc_off = [end_flag_acc_off; end_flag_off(ix_off)];
-    elseif sat_dir == 1
+    elseif sat_dir(k) > 0
         zmod_dec = [zmod_dec; zmod(ix)];
         norths_dec = [norths_dec; norths(ix)];
         easts_dec = [easts_dec; easts(ix)];
@@ -216,7 +216,7 @@ toc
 [~,E] = reference_elevations(zmod_acc, norths_acc, easts_acc, end_flag_acc, default_length, elevations, slope, aspect, Ref, [A1(row),A1(col)]); %calculate ref elevations with the shift
 
 % save refelevation csv
-writetable(E,outputname_acc);
+writetable(E,outputname_acc); clear E;
 
 % Decending coregistration
 disp('Decending Coregistration:')
