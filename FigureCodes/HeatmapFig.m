@@ -15,15 +15,15 @@ addpath(['/Users/karinazikan/Documents/functions'])
 addpath(['/Users/karinazikan/Documents/cmocean'])
 
 %Folder path
-folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/';
+folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/MCS/';
 %site abbreviation for file names
-abbrev = 'RCEW';
+abbrev = 'MCS';
 
 %Turn slope correction off or on
 slope_correction = 0; % 0 = off, 1 = on
 
 %% Load data
-filepath = [folderpath 'IS2_Data/A6-40/ATL06-A6-40-AllData-noCoreg.csv'];
+filepath = [folderpath 'IS2_Data/A6-40/ATL06-A6-40-AllData-ByTrack.csv'];
 df = readtable(filepath);
 
 %% Grouped data plot - elevations

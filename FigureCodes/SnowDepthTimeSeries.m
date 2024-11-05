@@ -13,26 +13,26 @@
 clearvars;
 
 %Folder path
-folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/MCS/';
+folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/DCEW/';
 %site abbreviation for file names
-abbrev = 'MCS';
+abbrev = 'DCEW';
 
 %Turn slope correction off or on
-slope_correction = 1; % 0 = off, 1 = on
+slope_correction = 0; % 0 = off, 1 = on
 
 %Weather Station Location
     % Banner snotel: snotel_E = 640823; snotel_N = 4907084;
     % MCS snotel: snotel_E = 607075; snotel_N = 4865193;
     % Reynolds snowex: snotel_E = 519729; snotel_N = 4768225;
     % DCEW little deer point AWS: snotel_E = 570697; snotel_N = 4843042;
-snotel_E = 640823; snotel_N = 4907084;
+snotel_E = 570697; snotel_N = 4843042;
 
 
 %% Load data
 % IS2 data
-filepath = [folderpath 'IS2_Data/ATL06-atl08class-AllData_on.csv'];
+filepath = [folderpath 'IS2_Data/A6-40/ATL06-A6-40-AllData-ByTrack_on.csv'];
 df_on = readtable(filepath);
-filepath = [folderpath 'IS2_Data/ATL06-atl08class-AllData_off.csv'];
+filepath = [folderpath 'IS2_Data/A6-40/ATL06-A6-40-AllData-ByTrack_off.csv'];
 df_off = readtable(filepath);
 
 %snotel data
@@ -59,12 +59,28 @@ if slope_correction == 1
 end
 
 % % Filter to near snotel station
-% window = 5000;
+window = 1000;
 % df_on = df_on((df_on.Easting <= (snotel_E + window) & df_on.Easting >= (snotel_E - window)),:);
 % df_on = df_on((df_on.Northing <= (snotel_N + window) & df_on.Northing >= (snotel_N - window)),:);
 % df_off = df_off((df_off.Easting <= (snotel_E + window) & df_off.Easting >= (snotel_E - window)),:);
 % df_off = df_off((df_off.Northing <= (snotel_N + window) & df_off.Northing >= (snotel_N - window)),:);
 
+%% Only tracks that go through SNOTEL
+dates_on = datetime(df_on.time.Year,df_on.time.Month,df_on.time.Day);
+groups = findgroups(dates_on,df_on.gt);
+unique_tracks = unique(groups);
+for i = 1:length(unique_tracks)
+    ix = groups == unique_tracks(i);
+    df_ix = df_on(ix,:);
+    df_ix = df_ix((df_ix.Easting <= (snotel_E + window) & df_ix.Easting >= (snotel_E - window)),:);
+    df_ix = df_ix((df_ix.Northing <= (snotel_N + window) & df_ix.Northing >= (snotel_N - window)),:);
+    if isempty(df_ix) == 1
+        df_on.elev_residuals_vertcoreg(ix) = NaN;
+    else
+    end
+end
+
+%%
 snowdepth = table([datetime(df_on.time.Year,df_on.time.Month,df_on.time.Day)], df_on.elev_residuals_vertcoreg, 'VariableNames',["time","residuals"]);
 snowdepth_dategroup = varfun(@(x)median(x,'omitnan'),snowdepth,'GroupingVariables',{'time'});
 elevresiduals = table([datetime(df_off.time.Year,df_off.time.Month,df_off.time.Day)], df_off.elev_residuals_vertcoreg, 'VariableNames',["time","residuals"]);
@@ -99,7 +115,6 @@ scatter(snowdepth_dategroup.time,snowdepth_dategroup.Fun_residuals,'filled','Mar
 legend('SNOTEL mean snow depth','ICESat-2 median snow free elevation residuals','ICESat-2 median snow depth')
 set(gca,'fontsize',20);
 ylabel('Snow Depth (m)')
-
 
 
 

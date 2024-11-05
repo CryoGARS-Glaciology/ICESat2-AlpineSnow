@@ -15,14 +15,14 @@ addpath(['/Users/karinazikan/Documents/ICESat2-AlpineSnow/functions'])
 addpath(['/Users/karinazikan/Documents/cmocean'])
 
 %site abbreviation for file names
-abbrev = 'DCEW';
+abbrev = 'MCS';
 %Product abbreviation for files
 prod_abbrev = 'A6-40';
 %Folder path
 folderpath = ['/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/' abbrev '/'];
 
 %Turn slope correction off or on
-slope_correction = 0; % 0 = off, 1 = on
+slope_correction = 1; % 0 = off, 1 = on
 
 
 %set colors

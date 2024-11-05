@@ -16,19 +16,41 @@
 clearvars;
 
 %Folder path
-folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/DCEW/';
+folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/';
 %site abbreviation for file names
 abbrev = 'DCEW';
 
-%File paths
-icesat2 = [folderpath 'IS2_Data/A6-40/' abbrev '-ICESat2-A6-40-SnowCover'];
-ref_elevations = [folderpath 'IS2_Data/A6-40/' abbrev '-ICESat2-A6-40-ref-elevations-noCoreg'];
+% Grouping type:
+% 'Agg' - 0
+% 'ByTrack' - 1
+% 'noCoreg' - 2
+% 'Agg_acc' - 3
+% 'Agg_dec' - 4
+Grouping = 2;
 
-%output file name
-outputname = 'ATL06-A6-40-AllData-noCoreg';
 
 %set footprint length
 % footprint = 40;
+
+%% File paths
+if Grouping == 0
+    Group = 'Agg'
+elseif Grouping == 1
+    Group = 'ByTrack'
+elseif Grouping == 2
+    Group = 'noCoreg'
+elseif Grouping == 3
+    Group = 'Agg-acc'
+elseif Grouping == 4
+    Group = 'Agg-dec'
+else
+end
+
+icesat2 = [folderpath abbrev '/IS2_Data/A6-40/' abbrev '-ICESat2-A6-40-SnowCover'];
+ref_elevations = [folderpath abbrev '/IS2_Data/A6-40/' abbrev '-ICESat2-A6-40-ref-elevations-grid-search-' Group];
+
+%output file name
+outputname = ['ATL06-A6-40-AllData-' Group];
 
 %% Load data
 %load the reference elevation data
@@ -36,6 +58,36 @@ E = readtable(ref_elevations);
 
 %load the ICESat-2 data
 I = readtable(icesat2);
+
+%% Make arrays the same length
+I_dates = datetime(I.time.Year,I.time.Month,I.time.Day);
+
+if Grouping == 1
+    %bytrack coreg table
+    ByTrack_shift_path = [folderpath abbrev '/IS2_Data/A6-40/' abbrev '_A6-40-ByTrack-Ashift'];
+    ByTrack_shifts = readtable(ByTrack_shift_path);
+    %filter by dates
+    E_dates = datetime(ByTrack_shifts.Var1,'ConvertFrom','yyyymmdd');
+    ix = ismember(I_dates,E_dates);
+    I = I(ix,:);
+elseif Grouping == 3
+    %dates array
+    path = [folderpath 'IS2_Data/A6-40/' abbrev '_A6-40dates-acc'];
+    E_dates = readtable(path);
+    %filter by dates
+    E_dates = datetime(E_dates,'ConvertFrom','yyyymmdd');
+    ix = ismember(I_dates,E_dates);
+    I = I(ix,:);
+elseif Grouping == 4
+    %dates array
+    path = [folderpath 'IS2_Data/A6-40/' abbrev '_A6-40dates-dec'];
+    E_dates = readtable(path);
+    %filter by dates
+    E_dates = datetime(E_dates,'ConvertFrom','yyyymmdd');
+    ix = ismember(I_dates,E_dates);
+    I = I(ix,:);
+else
+end
 
 %% Make snow-off array
 ix = find(I.snowcover == 0);
@@ -91,6 +143,6 @@ Output_off = Output(Output.snowcover == 0,:);
 Output_on = Output(Output.snowcover == 1,:);
 
 %% Write output file
-writetable(Output,[folderpath 'IS2_Data/A6-40/' outputname '.csv']);
-writetable(Output_off,[folderpath 'IS2_Data/A6-40/' outputname '_off.csv']);
-writetable(Output_on,[folderpath 'IS2_Data/A6-40/' outputname '_on.csv']);
+writetable(Output,[folderpath abbrev '/IS2_Data/A6-40/' outputname '.csv']);
+writetable(Output_off,[folderpath abbrev '/IS2_Data/A6-40/' outputname '_off.csv']);
+writetable(Output_on,[folderpath abbrev '/IS2_Data/A6-40/' outputname '_on.csv']);

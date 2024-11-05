@@ -3,24 +3,24 @@ clearvars; close all;
 addpath('./functions')
 
 %DTM (be sure the path ends in a /)
-DTM_path = 'Sites/RCEW/DEMs/';
+DTM_path = 'Sites/MCS/DEMs/';
 
-DTM_name = 'RCEW_1m_WGS84UTM11_WGS84.tif';
+DTM_name = 'MCS_REFDEM_WGS84.tif';
 if contains(DTM_name,'.tif')
     DTM_date = '20120826'; %only need to change this if the DTM is a geotiff
 end
 % Slope
-DTM_slope = 'RCEW_1m_WGS84UTM11_WGS84-slope.tif';
+DTM_slope = 'MCS_REFDEM_WGS84-slope.tif';
 % Aspect
-DTM_aspect = 'RCEW_1m_WGS84UTM11_WGS84-aspect.tif';
+DTM_aspect = 'MCS_REFDEM_WGS84-aspect.tif';
 
 
 %ICESat-2 csv (be sure the path ends in a /)
-csv_path = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/RCEW/IS2_Data/A6-40/';
-csv_name = 'RCEW-ICESat2-A6-40-SnowCover.csv';
+csv_path = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/MCS/IS2_Data/A6-40/';
+csv_name = 'MCS-ICESat2-A6-40-SnowCover.csv';
 
 %site abbreviation for file names
-abbrev = 'RCEW';
+abbrev = 'MCS';
 
 %ICESat-2 product acronym
 acronym = 'ATL06'; %set to ATL06-20 for the 20m atl06 data
@@ -133,12 +133,16 @@ end_flag_off(unique_refs) = 1; end_flag_off(unique_refs(unique_refs~=1)-1) = 1; 
 %% Aggrigated accending and decending corregistation
 
 %determine ascending and descending passes 
-zmod_acc = []; zmod_dec = []; zmod_acc_off = []; zmod_dec_off = [];
-norths_acc_off = []; easts_acc_off = []; end_flag_acc_off = [];
-norths_acc = []; easts_acc = []; end_flag_acc = [];
-norths_dec_off = []; easts_dec_off = []; end_flag_dec_off = [];
-norths_dec = []; easts_dec = []; end_flag_dec = [];
+zmod_acc = []; zmod_dec = []; zmod_acc_off = []; zmod_dec_off = []; 
+easts_acc = []; easts_dec = []; easts_acc_off = []; easts_dec_off = []; 
+norths_acc = []; norths_dec = []; norths_acc_off = []; norths_dec_off = []; 
+end_flag_acc = []; end_flag_dec = []; end_flag_acc_off = []; end_flag_dec_off = [];
+dates_acc = []; dates_dec = [];
+
 for k = 1:length(unique_dates)
+    %identify data for the date
+    ix = find(dates == unique_dates(k));
+    ix_off = find(dates_off == unique_dates(k));
     for j = 1:6
         track_flag = find(tracks(ix)==j);
         track_norths = norths(ix(track_flag)); track_easts = easts(ix(track_flag));
@@ -147,33 +151,31 @@ for k = 1:length(unique_dates)
         clear track_flag track_norths track_easts track_dirs;
     end
     sat_dir(k) = nanmedian(track_dir); clear track_dir;
-    %identify data for the date
-    ix = find(dates == unique_dates(k));
-    ix_off = find(dates_off == unique_dates(k));
     % make accending and decending datasets
     if sat_dir(k) < 0
+        dates_acc = [dates_acc unique_dates(k)];
+        end_flag_acc = [end_flag_acc; end_flag(ix)];
         zmod_acc = [zmod_acc; zmod(ix)];
         norths_acc = [norths_acc; norths(ix)];
         easts_acc = [easts_acc; easts(ix)];
-        end_flag_acc = [end_flag_acc; end_flag(ix)];
-        zmod_acc_off = [zmod_acc_off; zmod_off(ix_off)];
-        norths_acc_off = [easts_acc_off; easts_off(ix_off)];
-        easts_acc_off = [end_flag_acc_off; end_flag_off(ix_off)];
         end_flag_acc_off = [end_flag_acc_off; end_flag_off(ix_off)];
+        zmod_acc_off = [zmod_acc_off; zmod_off(ix_off)];
+        norths_acc_off = [norths_acc_off; norths_off(ix_off)];
+        easts_acc_off = [easts_acc_off; easts_off(ix_off)];
     elseif sat_dir(k) > 0
+        dates_dec = [dates_dec unique_dates(k)];
+        end_flag_dec = [end_flag_dec; end_flag(ix)];
         zmod_dec = [zmod_dec; zmod(ix)];
         norths_dec = [norths_dec; norths(ix)];
         easts_dec = [easts_dec; easts(ix)];
-        end_flag_dec = [end_flag_dec; end_flag(ix)];
-        zmod_dec_off = [zmod_dec_off; zmod_off(ix_off)];
-        norths_dec_off = [easts_dec_off; easts_off(ix_off)];
-        easts_dec_off = [end_flag_dec_off; end_flag_off(ix_off)];
         end_flag_dec_off = [end_flag_dec_off; end_flag_off(ix_off)];
+        zmod_dec_off = [zmod_dec_off; zmod_off(ix_off)];
+        norths_dec_off = [norths_dec_off; norths_off(ix_off)];
+        easts_dec_off = [easts_dec_off; easts_off(ix_off)];
     else
     end
 end
-
-
+%%
 % accending coregistration
 disp('Accending Coregistration:')
 % create the grid search function
@@ -190,18 +192,20 @@ for i = 1:length(A1)
     end
     writematrix(rmad_grid,[abbrev,'_',acronym,'_rmadGrid_acc.csv'])
 end
+[row, col] = find(ismember(rmad_grid, min(rmad_grid(:))));
 toc
 % print old and new RMAD
 tic
 fprintf('x-offset = %5.2f m & y-offset = %5.2f m w/ Accending RNMAD = %5.2f m \n',A1(col),A1(row),min(rmad_grid(:)));
-fprintf('Old Accending RNMAD = %5.2f \n', rmad_grid(6,6));
+fprintf('Old Accending RNMAD = %5.2f \n', rmad_grid(9,9));
 toc
 
 % Calculate corregistered reference elevations
 [~,E] = reference_elevations(zmod_acc, norths_acc, easts_acc, end_flag_acc, default_length, elevations, slope, aspect, Ref, [A1(row),A1(col)]); %calculate ref elevations with the shift
 
 % save refelevation csv
-writetable(E,outputname_acc); clear E;
+writetable(E ,outputname_acc); clear E;
+writetable(dates_acc ,[abbrev,'-ICESat2-',acronym, 'dates-acc.csv']); 
 
 % Decending coregistration
 disp('Decending Coregistration:')
@@ -217,6 +221,7 @@ for i = 1:length(A1)
     end
     writematrix(rmad_grid,[abbrev,'_',acronym,'_rmadGrid_acc.csv'])
 end
+[row, col] = find(ismember(rmad_grid, min(rmad_grid(:))));
 toc
 % print old and new RMAD
 tic
@@ -229,3 +234,5 @@ toc
 
 % save refelevation csv
 writetable(E,outputname_dec);
+writetable(dates_dec ,[abbrev,'-ICESat2-',acronym, 'dates-dec.csv']);
+
