@@ -15,7 +15,7 @@ addpath(['/Users/karinazikan/Documents/ICESat2-AlpineSnow/functions'])
 addpath(['/Users/karinazikan/Documents/cmocean'])
 
 %site abbreviation for file names
-abbrev = 'MCS';
+abbrev = 'Banner';
 %Product abbreviation for files
 prod_abbrev = 'A6-40';
 %Folder path
@@ -95,12 +95,12 @@ xbounds = [-4 4];
 % Not vertically coregistered - snow free
 figure(1); clf; hold on
 pd = fitdist(df_noCoreg_off.elev_residuals,'kernel','Kernel','normal');
-fplot(@(x) pdf(pd,x),[-10 8], 'Linewidth', 4, 'Color', colors{4}(3,:));
+fplot(@(x) pdf(pd,x),[-20 8], 'Linewidth', 4, 'Color', colors{4}(3,:));
 pd = fitdist(df_off.elev_residuals,'kernel','Kernel','normal');
-fplot(@(x) pdf(pd,x),[-10 8], 'Linewidth', 3, 'Color', colors{1}(3,:));
+fplot(@(x) pdf(pd,x),[-20 8], 'Linewidth', 3, 'Color', colors{1}(3,:));
 pd = fitdist(df_ByTrack_off.elev_residuals,'kernel','Kernel','normal');
-fplot(@(x) pdf(pd,x),[-10 8], 'Linewidth', 3, 'Color', colors{2}(3,:));
-set(gca,'fontsize',16,'xlim',xbounds);
+fplot(@(x) pdf(pd,x),[-20 8], 'Linewidth', 3, 'Color', colors{2}(3,:));
+%set(gca,'fontsize',16,'xlim',xbounds);
 %set(gcf,'position',[50 50 800 400]);
 xlabel('Snow free Vertical offset (m)'); ylabel('Probability density');
 legend('No Coregistration','Aggregated Coregistration','By Track Coregistration');
@@ -114,7 +114,7 @@ pd = fitdist(df_off.elev_residuals_vertcoreg,'kernel','Kernel','normal');
 fplot(@(x) pdf(pd,x),[-10 8], 'Linewidth',  3, 'Color', colors{1}(3,:));
 pd = fitdist(df_ByTrack_off.elev_residuals_vertcoreg,'kernel','Kernel','normal');
 fplot(@(x) pdf(pd,x),[-10 8], 'Linewidth', 3, 'Color', colors{2}(3,:));
-set(gca,'fontsize',16,'xlim',xbounds);
+%set(gca,'fontsize',16,'xlim',xbounds);
 %set(gcf,'position',[50 50 800 400]);
 xlabel('Snow free Vertical offset (m)'); ylabel('Probability density');
 legend('No Coregistration','Aggregated Coregistration','By Track Coregistration');

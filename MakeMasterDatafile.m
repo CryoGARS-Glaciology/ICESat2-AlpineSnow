@@ -18,7 +18,7 @@ clearvars;
 %Folder path
 folderpath = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/';
 %site abbreviation for file names
-abbrev = 'DCEW';
+abbrev = 'RCEW';
 
 % Grouping type:
 % 'Agg' - 0

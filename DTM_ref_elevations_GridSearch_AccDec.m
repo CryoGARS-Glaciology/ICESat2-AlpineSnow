@@ -3,24 +3,24 @@ clearvars; close all;
 addpath('./functions')
 
 %DTM (be sure the path ends in a /)
-DTM_path = 'Sites/MCS/DEMs/';
+DTM_path = 'Sites/Banner/DEMs/';
 
-DTM_name = 'MCS_REFDEM_WGS84.tif';
+DTM_name = 'Banner-ICESat2-ATL03-mean.tif';
 if contains(DTM_name,'.tif')
     DTM_date = '20120826'; %only need to change this if the DTM is a geotiff
 end
 % Slope
-DTM_slope = 'MCS_REFDEM_WGS84-slope.tif';
+DTM_slope = 'Banner-ICESat2-ATL03-mean-slope.tif';
 % Aspect
-DTM_aspect = 'MCS_REFDEM_WGS84-aspect.tif';
+DTM_aspect = 'Banner-ICESat2-ATL03-mean-aspect.tif';
 
 
 %ICESat-2 csv (be sure the path ends in a /)
-csv_path = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/MCS/IS2_Data/A6-40/';
-csv_name = 'MCS-ICESat2-A6-40-SnowCover.csv';
+csv_path = '/Users/karinazikan/Documents/ICESat2-AlpineSnow/Sites/Banner/IS2_Data/A6-40/';
+csv_name = 'Banner-ICESat2-A6-40-SnowCover.csv';
 
 %site abbreviation for file names
-abbrev = 'MCS';
+abbrev = 'Banner';
 
 %ICESat-2 product acronym
 acronym = 'ATL06'; %set to ATL06-20 for the 20m atl06 data
