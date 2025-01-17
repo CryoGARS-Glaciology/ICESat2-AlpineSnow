@@ -166,6 +166,7 @@ for i = 1:length(A1)
         rmad_grid(i,j) = GridSearchFunc([A1(i),A1(j)]);
     end
     writematrix(rmad_grid,[abbrev,'_',acronym,'_rmadGrid.csv'])
+    rmad_grid = readmatrix([abbrev,'_',acronym,'_rmadGrid.csv']);
 end
 toc
 

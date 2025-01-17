@@ -15,7 +15,7 @@ addpath(['/Users/karinazikan/Documents/ICESat2-AlpineSnow/functions'])
 addpath(['/Users/karinazikan/Documents/cmocean'])
 
 %site abbreviation for file names
-abbrev = 'Banner';
+abbrev = 'MCS';
 %Product abbreviation for files
 prod_abbrev = 'A6-40';
 %Folder path
@@ -91,7 +91,7 @@ snotel.SNWD_I_1_in_(snotel.SNWD_I_1_in_ < 0) = NaN;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Figures
 %% Non-parametric pdfs
-xbounds = [-4 4];
+xbounds = [-6 4];
 % Not vertically coregistered - snow free
 figure(1); clf; hold on
 pd = fitdist(df_noCoreg_off.elev_residuals,'kernel','Kernel','normal');
@@ -109,12 +109,13 @@ hold off
 % Vertically coregistered - snow free
 figure(2); clf; hold on
 pd = fitdist(df_noCoreg_off.elev_residuals_vertcoreg,'kernel','Kernel','normal');
-fplot(@(x) pdf(pd,x),[-10 8], 'Linewidth', 3, 'Color', colors{4}(3,:));
+fplot(@(x) pdf(pd,x),[-10 8], 'Linewidth', 4);
 pd = fitdist(df_off.elev_residuals_vertcoreg,'kernel','Kernel','normal');
-fplot(@(x) pdf(pd,x),[-10 8], 'Linewidth',  3, 'Color', colors{1}(3,:));
+fplot(@(x) pdf(pd,x),[-10 8], 'Linewidth',  4);
 pd = fitdist(df_ByTrack_off.elev_residuals_vertcoreg,'kernel','Kernel','normal');
-fplot(@(x) pdf(pd,x),[-10 8], 'Linewidth', 3, 'Color', colors{2}(3,:));
-%set(gca,'fontsize',16,'xlim',xbounds);
+fplot(@(x) pdf(pd,x),[-10 8], 'Linewidth', 4);
+xline(0, 'Linewidth', 1,'Color','black');
+set(gca,'fontsize',20,'xlim',xbounds);
 %set(gcf,'position',[50 50 800 400]);
 xlabel('Snow free Vertical offset (m)'); ylabel('Probability density');
 legend('No Coregistration','Aggregated Coregistration','By Track Coregistration');

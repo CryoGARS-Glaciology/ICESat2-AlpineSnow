@@ -45,10 +45,14 @@ acronym = 'A6-40'; %for custom ATL06 with ATL08 classification set to A6-20 for 
 %                    '-atl08class-ref-elevations-grid-grad-decent'
 %                    '-20m-ref-elevations-grid-grad-decent'
 %                    '-atl08class-20m-ref-elevations-grid-grad-decent'
-filename_sufix = '-ref-elevations-grid-search-Agg';
+filename_sufix = 'A6-40-ref-elevations-grid-search-fineGS-agg';
+
+% Corse Grid search offset (from corse coregistration)
+Arow = -1;
+Acol = 1;
 
 %% Set output name
-outputname = [abbrev,'-ICESat2-',acronym, filename_sufix, '.csv'];
+outputname = [abbrev,'-ICESat2-', filename_sufix, '.csv'];
 
 %% Read in files
 % Set default_length
@@ -65,7 +69,7 @@ elseif acronym == 'A6-30'
 else
     error('acronym must be ATL06 or or A6-40 or A6-20 or ATL08')
 end
-footwidth = 11; % approx. width of icesat2 shot footprint in meters
+
 
 %days of year
 modays_norm = [31 28 31 30 31 30 31 31 30 31 30 31];
@@ -107,6 +111,7 @@ zstd = T.h_sigma; %save the standard deviation of the icesat-2 elevation estimat
 easts = T.Easting(:); % pull out the easting values
 norths = T.Northing(:); % pull out the northings
 tracks = T.spot(:); % pull out the beam (1-6)
+footwidth = 11; % approx. width of icesat2 shot footprint in meters
 
 %identify the ends of each transect and flag them so that neighboring
 %transects aren't used when constructing footprints (use beam variable & date)
@@ -143,69 +148,39 @@ dates_off = dates(ix_off,:);
 end_flag_off = zeros(size(norths(ix_off,:),1),1);
 end_flag_off(unique_refs) = 1; end_flag_off(unique_refs(unique_refs~=1)-1) = 1; end_flag_off(end) = 1;
 
-%% Aggreidated snow off corregistation
-disp('Aggregated Coregistration:')
-%make dummy matrices to hold concatenated variables
-End_E = []; Adate = []; Arow = []; Acol = []; Adir = [];
-
-
-% if date has snow free data coregister data and calcualte reference elevations
-
 % create the grid search function
 GridSearchFunc = @(A)reference_elevations(zmod_off, norths_off, easts_off, end_flag_off, default_length, elevations, slope, aspect, Ref, A); %create the handle to call the coregistration function
 
-%set up the grid size
-A1 = -8:8;
-%run the grid search
+%% Grid of possible inputs to calculate initial guess
+A1 = -0.9:0.1:0.9;
+rmad_grid = zeros(length(A1),length(A1));
+
 tic
 for i = 1:length(A1)
+    tic
     for j = 1:length(A1)
         fprintf('running cell [ %5.2f , %5.2f ] \n', i, j);
-        rmad_grid(i,j) = GridSearchFunc([A1(i),A1(j)]);
-    end
-    writematrix(rmad_grid,[abbrev,'_',acronym,'_rmadGrid.csv'])
+        rmad_grid(i,j) = GridSearchFunc([Arow+A1(i),Acol+A1(j)]);
+    end    
+    fprintf('row %5.2f completed',i);
+    writematrix(rmad_grid,[abbrev,'_rmadFineGrid.csv'])
+    toc
 end
 toc
 
-%save the best coregistration shifts to file
 [row, col] = find(ismember(rmad_grid, min(rmad_grid(:))));
-writematrix([A1(col),A1(row)],[abbrev,'_',acronym,'-Agg-Ashift.csv']);
+A1row = A1(row); A1col = A1(col);
 
-% print old and new RMAD
-fprintf('x-offset = %5.2f m & y-offset = %5.2f m w/ RNMAD = %5.2f m \n',A1(col),A1(row),min(rmad_grid(:)));
-fprintf('Old RNMAD = %5.2f \n', rmad_grid(9,9));
+writematrix([Arow+A1row,Acol+A1col],[abbrev,'fine_Ashift.csv'])
 
+% Test Gradient Decent from grid guess
+ tic
+ fprintf('x-offset = %5.2f m & y-offset = %5.2f m w/ RNMAD = %5.2f m \n',Arow+A1row,Acol+A1col,min(rmad_grid(:)));
+ fprintf('Old RNMAD = %5.2f', rmad_grid(10,10));
+ toc
 
-% Calculate corregistered reference elevations
-[~,E] = reference_elevations(zmod, norths, easts, end_flag, default_length, elevations, slope, aspect, Ref, [A1(row),A1(col)]); %calculate ref elevations with the shift
-End_E = [End_E; E]; clear E;
-
-% save refelevation csv
-writetable(End_E,outputname);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+%% Calculate corregistered reference elevations
+[~,E] = reference_elevations(zmod, norths, easts, end_flag, default_length, elevations, slope, aspect, Ref, [Arow+A1row,Acol+A1col]); %calculate ref elevations with the shift
+    
+%% save ref elevation csv
+writetable(E,outputname);

@@ -10,7 +10,7 @@ site_abbrevs = string({'RCEW';'Banner';'MCS';'DCEW'});
 site_names = string({'RCEW';'BCS';'MCS';'DCEW'});
 
 %Turn dtm or is2 slope correction
-slope_correction = 0; % 0 = dtm, 1 = is2, 2 = no correction
+slope_correction = 2; % 0 = dtm, 1 = is2, 2 = no correction
 
 slope_cutoff = 20;
 
@@ -31,20 +31,28 @@ colors{4} = cmocean('-amp',5);
 %% Read in data
 for j = 1:length(site_abbrevs)
     % IS2 data
-    filepath = strcat(folderpath, site_abbrevs(j), '/IS2_Data/ATL06-atl08class-AllData_on.csv');
+    filepath = strcat(folderpath, site_abbrevs(j), '/IS2_Data/A6-40/ATL06-A6-40-AllData-noCoreg_on.csv');
     df_on{j} = readtable(filepath);
-    filepath = strcat(folderpath, site_abbrevs(j), '/IS2_Data/ATL06-atl08class-AllData_off.csv');
+    filepath = strcat(folderpath, site_abbrevs(j), '/IS2_Data/A6-40/ATL06-A6-40-AllData-noCoreg_off.csv');
     df_off{j} = readtable(filepath);
 
-    %snotel data
+     %snotel data
     snotel_files = dir(strcat(folderpath, site_abbrevs(j), '/snotel/*.csv'));
-    snotel{j} = readtable(strcat(folderpath, site_abbrevs(j), '/snotel/', snotel_files(1).name));
-    for i = 2:length(snotel_files)
-        file = readtable(strcat(folderpath, site_abbrevs(j), '/snotel/', snotel_files(i).name));
-        snotel{j} = cat(1,snotel{j},file);
+    if j == 1 %RCEW site
+        temp_file = readtable(strcat(folderpath, site_abbrevs(j), '/snotel/', snotel_files(1).name));
+        Dates = datetime(temp_file.date_time.Year,temp_file.date_time.Month,temp_file.date_time.Day);
+        snotel{j}.Date = [Dates; Dates; Dates; Dates];
+        snotel{j}.SNWD_I_1_in_ = [temp_file.RME_176; temp_file.RME_176b; temp_file.RME_rmsp3; temp_file.RME_rmsp3b];
+        snotel{j}.SNWD_I_1_in_ = snotel{j}.SNWD_I_1_in_ / 100;
+    else
+        snotel{j} = readtable(strcat(folderpath, site_abbrevs(j), '/snotel/', snotel_files(1).name));
+        for i = 2:length(snotel_files)
+            file = readtable(strcat(folderpath, site_abbrevs(j), '/snotel/', snotel_files(i).name));
+            snotel{j} = cat(1,snotel{j},file);
+        end
+        snotel{j}.SNWD_I_1_in_ = snotel{j}.SNWD_I_1_in_ * 0.0254; %convert from in to m
+        snotel{j}.SNWD_I_1_in_(snotel{j}.SNWD_I_1_in_ < 0) = NaN;
     end
-    snotel{j}.SNWD_I_1_in_ = snotel{j}.SNWD_I_1_in_ * 0.0254; %convert from in to m
-    snotel{j}.SNWD_I_1_in_(snotel{j}.SNWD_I_1_in_ < 0) = NaN;
 
     %%
     if slope_correction == 1

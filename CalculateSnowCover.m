@@ -24,7 +24,7 @@ cd(folderpath);
 SnowCoverPath = [folderpath 'SnowCover/'];
 %site abbreviation for file names
 abbrev = 'RCEW';
-% 
+%   
 % % Site shapefile 
 shapefile = 'RCEW-outline_WGS84.shp';
 
