@@ -29,7 +29,6 @@ abbrev = 'RCEW';
 % 'noCoreg' - 2
 % 'Agg_acc' - 3
 % 'Agg_dec' - 4
-% 'gradDecent' - 5
 Grouping = 0;
 
 %% File paths
@@ -43,8 +42,6 @@ elseif Grouping == 3
     Group = 'Agg-acc'
 elseif Grouping == 4
     Group = 'Agg-dec'
-elseif Grouping == 5
-    Group = 'gradDecent'
 end
 
 icesat2 = [folderpath abbrev '/IS2_Data/A6-40/' abbrev '-ICESat2-A6-40-SnowCover'];
