@@ -11,7 +11,7 @@ This workflow calculates snow depth by comparing snow-on ICESat-2 observations t
 - Calculate comparitive snow depth from coregistered ICESat-2 returns and snow-free DTMs
 - Calculate and apply slope corrections to ICESat-2 snow depths
 - Analysis codes for ICESat-2 snow depths compared to automatic weather station (AWS) snow depth time series
-- Analysis codes for ICESat-2 snow depths compared to independently colected snow depth maps
+- ~~Analysis codes for ICESat-2 snow depths compared to independently colected snow depth maps~~
 
 To make snow cover maps we used [CryoGARS-Glaciology/ndsi-snow-maps](https://github.com/CryoGARS-Glaciology/ndsi-snow-maps)
 
