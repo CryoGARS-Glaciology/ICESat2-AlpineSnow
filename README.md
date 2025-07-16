@@ -34,3 +34,4 @@ These codes expect the following intital directory set up.
 ```
 
 # Workflow 
+![Workflow flow chart](Images/NewWorkflow.jpg) 
