@@ -1,6 +1,8 @@
 # ICESat2-AlpineSnow
 ICESat-2 derived snow depth workflow for alpine watersheds. 
 
+<img src="logo_mtns_blue_smaller.png" alt="CryoGARS" width="150"/>
+
 This workflow calculates snow depth by comparing snow-on ICESat-2 observations to a independently colected snow-free reference DTM. This repository contains codes to: 
 - Download ICESat-2 ATL06 data from ATL08 ground classified photons from an ROI with a desired CRS using the Sliderule-Earth data processing package
 - Transform a reference DTM raster to a desired ROI
@@ -10,6 +12,9 @@ This workflow calculates snow depth by comparing snow-on ICESat-2 observations t
 - Calculate and apply slope corrections to ICESat-2 snow depths
 - Analysis codes for ICESat-2 snow depths compared to automatic weather station (AWS) snow depth time series
 - Analysis codes for ICESat-2 snow depths compared to independently colected snow depth maps
+
+## Correspondence
+Karina Zikan (karinazikan@u.boisestate.edu)
 
 # Directory set up
 These codes expect the following intital directory set up. 
