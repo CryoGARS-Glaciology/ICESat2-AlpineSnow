@@ -25,6 +25,8 @@ These codes expect the following intital directory set up.
 ├── codes.m
 ├── codes.ipynb
 ├── README.md
+└── functions
+    ├── [function codes]
 └── Sites
     └── [Site name]
         └── DEMs
