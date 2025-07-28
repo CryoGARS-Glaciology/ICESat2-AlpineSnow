@@ -12,8 +12,6 @@ This repository contains codes to:
 - Coregister ICESat-2 transects and a snow-free reference DTM using either agregated or individual ICESat-2 overpasses
 - Calculate comparitive snow depth from coregistered ICESat-2 returns and snow-free DTMs
 - Calculate and apply slope corrections to ICESat-2 snow depths
-- Analysis codes for ICESat-2 snow depths compared to automatic weather station (AWS) snow depth time series
-- ~~Analysis codes for ICESat-2 snow depths compared to independently colected snow depth maps~~
 
 To make snow cover maps we used [CryoGARS-Glaciology/ndsi-snow-maps](https://github.com/CryoGARS-Glaciology/ndsi-snow-maps)
 
