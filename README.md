@@ -1,7 +1,8 @@
-# ICESat2-AlpineSnow
-ICESat-2 derived snow depth workflow for alpine watersheds.  
+# ICESat2-AlpineSnow   [![DOI](https://zenodo.org/badge/955506295.svg)](https://doi.org/10.5281/zenodo.17101986)                                                 
 
-<img src="Images/logo_mtns_blue_smaller.png" alt="CryoGARS" width="150"/> [![DOI](https://zenodo.org/badge/955506295.svg)](https://doi.org/10.5281/zenodo.17101986)
+ICESat-2 derived snow depth workflow for alpine watersheds.     
+
+<img src="Images/logo_mtns_blue_smaller.png" alt="CryoGARS" width="150"/> 
 
 This workflow calculates snow depth by comparing snow-on ICESat-2 observations to a independently collected snow-free reference DTM. 
 
