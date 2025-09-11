@@ -1,5 +1,5 @@
 # ICESat2-AlpineSnow
-ICESat-2 derived snow depth workflow for alpine watersheds. 
+ICESat-2 derived snow depth workflow for alpine watersheds.  [![DOI](https://zenodo.org/badge/955506295.svg)](https://doi.org/10.5281/zenodo.17101986)
 
 <img src="Images/logo_mtns_blue_smaller.png" alt="CryoGARS" width="150"/>
 
