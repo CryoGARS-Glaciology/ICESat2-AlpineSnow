@@ -9,6 +9,7 @@ This workflow calculates snow depth by comparing snow-on ICESat-2 observations t
 This repository contains codes to: 
 - Calculate and download ICESat-2 ATL06-like data calculated using ATL08 ground classified photons within an input ROI with a desired CRS using the Sliderule-Earth data processing package
 - Transform a reference DTM raster to a desired CRS
+- Calculate slope and aspect rasters from a reference DTM
 - Classify ICESat-2 segments as snow-free or snow covered using a snow cover map
 - Coregister ICESat-2 transects and a snow-free reference DTM using either agregated or individual ICESat-2 overpasses
 - Calculate comparitive snow depth from coregistered ICESat-2 returns and snow-free DTMs
