@@ -17,7 +17,7 @@ This repository contains codes to:
 
 Update the relvant paths and other inputs to suit your needs. The expected directory set up and needed inputs are listed below.
 
-The coregesitration codes are computationally intesive so are currently set up to run on a supercomputer. If horizontal coregistration is not needed the 'DTM_ref_elevations_noCoreg.m' code can replace the indivCoreg or aggCoreg codes, it will calculate reference elevations much quicker (though it still isn't fast).
+The coregesitration codes are computationally intensive so are currently set up to run on a supercomputer. If horizontal coregistration is not needed the 'DTM_ref_elevations_noCoreg.m' code can replace the indivCoreg or aggCoreg codes, it will calculate reference elevations much quicker (though it still isn't fast).
 
 To make snow cover maps we used [CryoGARS-Glaciology/ndsi-snow-maps](https://github.com/CryoGARS-Glaciology/ndsi-snow-maps)
 
