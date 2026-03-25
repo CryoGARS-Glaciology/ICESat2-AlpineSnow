@@ -1,5 +1,5 @@
 %%% Code to calculate reference elevations for each ICESat-2 segment with
-%%% a 8 by 8 m grid search for aggragated ICESat-2 data. This
+%%% a .9 by .9 m grid search for aggragated ICESat-2 data. This
 %%% code should be performed after DTM_ref_elevations_aggCoreg.m is run
 %%%
 %%% Writen by Karina Zikan & Ellyn Enderlin
