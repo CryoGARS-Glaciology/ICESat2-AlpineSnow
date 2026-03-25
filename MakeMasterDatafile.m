@@ -44,8 +44,8 @@ elseif Grouping == 4
     Group = 'Agg-dec'
 end
 
-icesat2 = [folderpath abbrev '/IS2_Data/A6-40/' abbrev '-ICESat2-A6-40-SnowCover'];
-ref_elevations = [folderpath abbrev '/IS2_Data/A6-40/' abbrev '-ICESat2-A6-40-ref-elevations-grid-search-' Group];
+icesat2 = [folderpath abbrev '/IS2_Data/' abbrev '-ICESat2-A6-40-SnowCover'];
+ref_elevations = [folderpath abbrev '/IS2_Data/' abbrev '-ICESat2-A6-40-ref-elevations-grid-search-' Group];
 
 %output file name
 outputname = ['ATL06-A6-40-AllData-' Group];
@@ -62,7 +62,7 @@ I_dates = datetime(I.time.Year,I.time.Month,I.time.Day);
 
 if Grouping == 1
     %bytrack coreg table
-    ByTrack_shift_path = [folderpath abbrev '/IS2_Data/A6-40/' abbrev '_A6-40-ByTrack-fineGS-Ashift'];
+    ByTrack_shift_path = [folderpath abbrev '/IS2_Data/' abbrev '_A6-40-ByTrack-fineGS-Ashift'];
     ByTrack_shifts = readtable(ByTrack_shift_path);
     %filter by dates
     E_dates = datetime(ByTrack_shifts.Var1,'ConvertFrom','yyyymmdd');
@@ -70,7 +70,7 @@ if Grouping == 1
     I = I(ix,:);
 elseif Grouping == 3
     %dates array
-    path = [folderpath 'IS2_Data/A6-40/' abbrev '_A6-40dates-acc'];
+    path = [folderpath 'IS2_Data/' abbrev '_A6-40dates-acc'];
     E_dates = readtable(path);
     %filter by dates
     E_dates = datetime(E_dates,'ConvertFrom','yyyymmdd');
@@ -78,7 +78,7 @@ elseif Grouping == 3
     I = I(ix,:);
 elseif Grouping == 4
     %dates array
-    path = [folderpath 'IS2_Data/A6-40/' abbrev '_A6-40dates-dec'];
+    path = [folderpath 'IS2_Data/' abbrev '_A6-40dates-dec'];
     E_dates = readtable(path);
     %filter by dates
     E_dates = datetime(E_dates,'ConvertFrom','yyyymmdd');
@@ -141,6 +141,6 @@ Output_off = Output(Output.snowcover == 0,:);
 Output_on = Output(Output.snowcover == 1,:);
 
 %% Write output file
-writetable(Output,[folderpath abbrev '/IS2_Data/A6-40/' outputname '.csv']);
-writetable(Output_off,[folderpath abbrev '/IS2_Data/A6-40/' outputname '_off.csv']);
-writetable(Output_on,[folderpath abbrev '/IS2_Data/A6-40/' outputname '_on.csv']);
+writetable(Output,[folderpath abbrev '/IS2_Data/' outputname '.csv']);
+writetable(Output_off,[folderpath abbrev '/IS2_Data/' outputname '_off.csv']);
+writetable(Output_on,[folderpath abbrev '/IS2_Data/' outputname '_on.csv']);
