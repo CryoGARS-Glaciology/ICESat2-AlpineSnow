@@ -36,6 +36,7 @@ These codes expect the following intital directory set up.
             ├── [slope raster]
             ├── [aspect raster]
         └── IS2_Data
+            ├── [ICESat-2 csvs]
         └── ROIs
             ├── [ROI shapefile]
         └── snotel
