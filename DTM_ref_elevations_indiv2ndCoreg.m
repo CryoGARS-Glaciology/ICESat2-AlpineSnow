@@ -36,7 +36,7 @@ DTM_slope = 'DryCreekBase1m_WGS84UTM11-slope-002.tif';
 DTM_aspect = 'DryCreekBase1m_WGS84UTM11-aspect-001.tif';
 
 %csv (be sure the path ends in a /)
-csv_path = '/bsuhome/karinazikan/scratch/DCEW/A6-40/'; %Path to ICESat-2 data with snow cover classification
+csv_path = '/bsuhome/karinazikan/scratch/DCEW/IS2_Data/'; %Path to ICESat-2 data with snow cover classification
 csv_name = 'DCEW-ICESat2-A6-40-SnowCover.csv';
 
 %site abbreviation for file names
