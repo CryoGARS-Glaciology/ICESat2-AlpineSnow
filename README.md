@@ -35,7 +35,7 @@ These codes expect the following intital directory set up.
             ├── [snow free reference DTM raster]
             ├── [slope raster]
             ├── [aspect raster]
-        └── IS2_Data
+        └── A6-40
             ├── [ICESat-2 csvs]
         └── ROIs
             ├── [ROI shapefile]
